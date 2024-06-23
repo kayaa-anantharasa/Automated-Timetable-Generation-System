@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "376171836046",
+    "project_id": "onlinelearning-8e05e",
+    "storage_bucket": "onlinelearning-8e05e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:376171836046:android:73ead7316d416caa8acfdf",
+        "android_client_info": {
+          "package_name": "com.example.automatedtimetablegenerationsystem"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDaochVLcd2bveWOPPYZ3RvTQfvhGbqVkk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:376171836046:android:e42b32d54e9e948e8acfdf",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDaochVLcd2bveWOPPYZ3RvTQfvhGbqVkk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:376171836046:android:d3867c87e43a47b38acfdf",
+        "android_client_info": {
+          "package_name": "com.example.online_learning"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDaochVLcd2bveWOPPYZ3RvTQfvhGbqVkk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
