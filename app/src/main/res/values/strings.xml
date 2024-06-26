@@ -4,6 +4,13 @@
     <string name="first_fragment_label">First Fragment</string>
     <string name="second_fragment_label">Second Fragment</string>
     <string name="next">Next</string>
+    <string name="new_password">New Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="change_password">Change Password</string>
+    <string name="generate_time_table">Generate Time Table</string>
+    <string name="please_select_number_of_subject_you_have_failed">Please select number of subject you have failed</string>
+    <string name="Please_select_your_current_semester">Please select your current semester</string>
+    <string name="Please_select_your_current_program">Please select your current program</string>
     <string name="previous">Previous</string>
 
     <string name="lorem_ipsum">
