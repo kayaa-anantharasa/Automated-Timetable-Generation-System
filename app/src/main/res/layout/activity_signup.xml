@@ -33,7 +33,7 @@
       app:layout_constraintTop_toTopOf="parent" />
 
   <EditText
-      android:id="@+id/name"
+      android:id="@+id/signupname"
       android:layout_width="328dp"
       android:layout_height="45dp"
       android:layout_marginTop="236dp"
@@ -57,7 +57,7 @@
       app:layout_constraintTop_toTopOf="parent" />
 
   <EditText
-      android:id="@+id/editTextNumber"
+      android:id="@+id/signupmatrixnumber"
       android:layout_width="342dp"
       android:layout_height="51dp"
       android:layout_marginTop="316dp"
@@ -81,7 +81,7 @@
       app:layout_constraintTop_toTopOf="parent" />
 
   <EditText
-      android:id="@+id/email"
+      android:id="@+id/signupemail"
       android:layout_width="340dp"
       android:layout_height="40dp"
       android:layout_marginTop="416dp"
@@ -107,7 +107,7 @@
       app:layout_constraintVertical_bias="0.126" />
 
   <EditText
-      android:id="@+id/password"
+      android:id="@+id/loginpassword"
       android:layout_width="330dp"
       android:layout_height="40dp"
       android:layout_marginTop="481dp"
@@ -135,7 +135,7 @@
       app:layout_constraintVertical_bias="0.105" />
 
   <EditText
-      android:id="@+id/cpassword"
+      android:id="@+id/signupcpassword"
       android:layout_width="325dp"
       android:layout_height="40dp"
       android:layout_marginTop="588dp"
@@ -147,7 +147,7 @@
       app:layout_constraintTop_toTopOf="parent" />
 
   <Button
-      android:id="@+id/button"
+      android:id="@+id/signupButton"
       android:layout_width="265dp"
       android:layout_height="45dp"
       android:text="Signup"
