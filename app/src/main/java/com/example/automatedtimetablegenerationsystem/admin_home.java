@@ -4,21 +4,54 @@ import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+
+import com.example.automatedtimetablegenerationsystem.databinding.ActivityAdminHomeBinding;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class admin_home extends AppCompatActivity {
 
+    ActivityAdminHomeBinding binding;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_admin_home);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
+
+//        setContentView(R.layout.activity_admin_home);
+
+        binding = ActivityAdminHomeBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+        replaceFragment(new adminHomeFragment());
+       // BottomNavigationView bottomNavigationView = findViewById(R.id.bottom);
+        binding.bottom.setOnItemSelectedListener(item -> {
+            if (item.getItemId() == R.id.home) {
+                replaceFragment(new adminHomeFragment());
+            } else if (item.getItemId() == R.id.timetable) {
+                replaceFragment(new adminTimetableFragment());
+            } else if (item.getItemId() == R.id.user) {
+                replaceFragment(new adminUserFragment());
+            }
+            // Uncomment the following if statement if needed
+            // else if (item.getItemId() == R.id.add) {
+            //    replaceFragment(new adminHomeFragment());
+            // }
+
+            return true;
         });
+
+
+
+//        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+//            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+//            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+//            return insets;
+//        });
+    }
+    private void replaceFragment(Fragment fragment){
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.replace(R.id.framelayoutid,fragment);
+        fragmentTransaction.commit();
     }
 }

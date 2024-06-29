@@ -5,6 +5,97 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/b5"
     tools:context=".adminlogin">
 
+    <TextView
+        android:id="@+id/textView13"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="232dp"
+        android:layout_marginTop="143dp"
+        android:layout_marginEnd="121dp"
+        android:layout_marginBottom="569dp"
+        android:text="Admin Login"
+        android:textColorLink="#FFFFFF"
+        android:textSize="34sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textView14"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="35dp"
+        android:layout_marginTop="356dp"
+        android:layout_marginEnd="297dp"
+        android:layout_marginBottom="353dp"
+        android:text="User Name"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/username"
+        style="@style/Widget.AppCompat.EditText"
+        android:layout_width="333dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="35dp"
+        android:layout_marginTop="384dp"
+        android:layout_marginEnd="43dp"
+        android:layout_marginBottom="297dp"
+        android:inputType="text"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textView15"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="37dp"
+        android:layout_marginTop="467dp"
+        android:layout_marginEnd="302dp"
+        android:layout_marginBottom="242dp"
+        android:text="Password"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/password"
+        style="@style/Widget.AppCompat.EditText"
+        android:layout_width="338dp"
+        android:layout_height="53dp"
+        android:layout_marginStart="39dp"
+        android:layout_marginTop="508dp"
+        android:layout_marginEnd="49dp"
+        android:layout_marginBottom="174dp"
+        android:ems="10"
+        android:inputType="textPassword"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/adminLogin"
+        android:layout_width="284dp"
+        android:layout_height="38dp"
+        android:layout_marginStart="60dp"
+        android:layout_marginTop="621dp"
+        android:layout_marginEnd="67dp"
+        android:layout_marginBottom="72dp"
+        android:text="Login"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

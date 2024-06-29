@@ -26,13 +26,14 @@ public class login extends AppCompatActivity {
     EditText login_matrix, login_password;
     Button login_btn;
     TextView signup_txt;
-
+    TextView adminlogin_txt;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
         signup_txt = findViewById(R.id.signuptxt);
+        adminlogin_txt = findViewById(R.id.adminlogin);
         signup_txt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -40,7 +41,13 @@ public class login extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-
+        adminlogin_txt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(login.this, adminlogin.class);
+                startActivity(intent);
+            }
+        });
         login_matrix = findViewById(R.id.loginmatrix);
         login_password = findViewById(R.id.loginpassword);
         login_btn = findViewById(R.id.loginbtn);

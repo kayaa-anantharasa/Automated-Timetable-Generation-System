@@ -50,7 +50,7 @@ public class signup extends AppCompatActivity {
             public void onClick(View view) {
                 if (validateInputs()) {
                     database = FirebaseDatabase.getInstance();
-                    reference = database.getReference("admin");
+                    reference = database.getReference("users");
                     String name = signup_name.getText().toString();
                     String email = signup_email.getText().toString();
                     String matrixnumber = signup_matrixnumber.getText().toString();
