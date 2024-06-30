@@ -1,64 +1,71 @@
 package com.example.automatedtimetablegenerationsystem;
 
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link adminHomeFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class adminHomeFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private RecyclerView recyclerView;
+    private TimetableAdapter adapter;
+    private List<Timetable> timetableEntries;
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
-
-    public adminHomeFragment() {
-        // Required empty public constructor
-    }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment adminHomeFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static adminHomeFragment newInstance(String param1, String param2) {
-        adminHomeFragment fragment = new adminHomeFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
+    @Nullable
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_admin_home, container, false);
+
+        // Initialize RecyclerView
+        recyclerView = view.findViewById(R.id.dataview);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        // Initialize timetableEntries
+        timetableEntries = new ArrayList<>();
+
+        // Initialize adapter
+        adapter = new TimetableAdapter(getContext(), timetableEntries);
+        recyclerView.setAdapter(adapter);
+
+        // Fetch data from Firebase Realtime Database
+        fetchDataFromFirebase();
+
+        return view;
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_admin_home, container, false);
+    // Method to fetch data from Firebase Realtime Database
+    private void fetchDataFromFirebase() {
+        DatabaseReference databaseRef = FirebaseDatabase.getInstance().getReference("timetable"); // Replace with your database reference
+        databaseRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                timetableEntries.clear(); // Clear existing entries
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    Timetable timetable = snapshot.getValue(Timetable.class);
+                    timetableEntries.add(timetable);
+                }
+                adapter.notifyDataSetChanged(); // Notify adapter of data change
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                // Handle errors
+            }
+        });
     }
 }

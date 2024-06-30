@@ -1,64 +1,109 @@
 package com.example.automatedtimetablegenerationsystem;
 
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.MultiAutoCompleteTextView;
+import android.widget.Spinner;
+import android.widget.Toast;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link adminTimetableFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
+import java.util.Arrays;
+import java.util.List;
+
 public class adminTimetableFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private MultiAutoCompleteTextView multiAutoCompleteTextViewDays;
+    private Spinner spinnerTime;
+    private Spinner spinnersemi;
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private EditText subjectCodeEditText, subjectNameEditText, lecturerEditText;
+    private Button addTimetableButton;
 
-    public adminTimetableFragment() {
-        // Required empty public constructor
-    }
+    private DatabaseReference timetableRef;
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment adminTimetableFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static adminTimetableFragment newInstance(String param1, String param2) {
-        adminTimetableFragment fragment = new adminTimetableFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
+    @Nullable
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_admin_timetable, container, false);
+
+        // Initialize views
+        multiAutoCompleteTextViewDays = view.findViewById(R.id.days);
+        spinnerTime = view.findViewById(R.id.spinnerTime);
+        spinnersemi = view.findViewById(R.id.semi);
+        subjectCodeEditText = view.findViewById(R.id.subjectcode);
+        subjectNameEditText = view.findViewById(R.id.subjectname);
+        lecturerEditText = view.findViewById(R.id.lecturer);
+        addTimetableButton = view.findViewById(R.id.addtimetable);
+
+        // Set up days MultiAutoCompleteTextView
+        List<String> daysList = Arrays.asList("Monday", "Tuesday", "Wednesday", "Thursday", "Friday");
+        ArrayAdapter<String> daysAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, daysList);
+        multiAutoCompleteTextViewDays.setAdapter(daysAdapter);
+        multiAutoCompleteTextViewDays.setTokenizer(new MultiAutoCompleteTextView.CommaTokenizer());
+
+        // Set up time Spinner
+        List<String> timeList = Arrays.asList("8:00 AM - 9:00 AM", "9:00 AM - 10:00 AM", "10:00 AM - 11:00 AM", "11:00 AM - 12:00 PM", "12:00 PM - 1:00 PM", "1:00 PM - 2:00 PM", "2:00 PM - 3:00 PM", "3:00 PM - 4:00 PM", "4:00 PM - 5:00 PM");
+        ArrayAdapter<String> timeAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, timeList);
+        timeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerTime.setAdapter(timeAdapter);
+
+        // Set up semester Spinner
+        List<String> semiList = Arrays.asList("semi 01", "semi 02");
+        ArrayAdapter<String> semiAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, semiList);
+        semiAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnersemi.setAdapter(semiAdapter);
+
+        // Firebase reference
+        timetableRef = FirebaseDatabase.getInstance().getReference().child("timetable");
+
+        // Set button click listener
+        addTimetableButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                addTimetableToFirebase();
+            }
+        });
+
+        return view;
+    }
+
+    private void addTimetableToFirebase() {
+        String subjectCode = subjectCodeEditText.getText().toString().trim();
+        String subjectName = subjectNameEditText.getText().toString().trim();
+        String lecturer = lecturerEditText.getText().toString().trim();
+        String days = multiAutoCompleteTextViewDays.getText().toString().trim();
+        String time = spinnerTime.getSelectedItem().toString();
+        String semi = spinnersemi.getSelectedItem().toString();
+
+        // Validate inputs
+        if (subjectCode.isEmpty() || subjectName.isEmpty() || lecturer.isEmpty() || days.isEmpty() || time.isEmpty() || semi.isEmpty()) {
+            Toast.makeText(requireContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show();
+            return;
         }
-    }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_admin_timetable, container, false);
+        // Create timetable object
+        Timetable timetable = new Timetable(subjectCode, subjectName, lecturer, days, time, semi);
+
+        // Push timetable object to Firebase
+        timetableRef.push().setValue(timetable);
+
+        // Clear input fields after adding timetable
+        subjectCodeEditText.setText("");
+        subjectNameEditText.setText("");
+        lecturerEditText.setText("");
+        multiAutoCompleteTextViewDays.setText("");
+
+        Toast.makeText(requireContext(), "Timetable added successfully", Toast.LENGTH_SHORT).show();
     }
 }

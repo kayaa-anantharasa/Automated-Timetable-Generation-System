@@ -3,6 +3,8 @@ package com.example.automatedtimetablegenerationsystem;
 public class signupClass {
     String name,email,password;
     String matrixNumber;
+    public signupClass() {
+    }
 
     public String getName() {
         return name;
@@ -42,7 +44,5 @@ public class signupClass {
         this.password = password;
         this.matrixNumber = matrixNumber;
     }
-public  signupClass(){
 
-}
 }

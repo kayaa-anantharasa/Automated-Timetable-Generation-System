@@ -13,7 +13,7 @@
     <string name="Please_select_your_current_program">Please select your current program</string>
     <string name="previous">Previous</string>
 
-
+    <string name="spinner_prompt">Select time</string>
     <string name="lorem_ipsum">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris
         volutpat, dolor id interdum ullamcorper, risus dolor egestas lectus, sit amet mattis purus
