@@ -1,5 +1,6 @@
 package com.example.automatedtimetablegenerationsystem;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
@@ -33,11 +34,19 @@ public class userMain extends AppCompatActivity {
                 replaceFragment(new usertimetableFragment());
             } else if (item.getItemId() == R.id.useredit) {
                 replaceFragment(new usereditFragment());
+            }  else if (item.getItemId() == R.id.userlogout) {
+                logoutUser();
             }
 
             return true;
         });
 
+    }
+    private void logoutUser() {
+        Intent intent = new Intent(this, login.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Clear back stack
+        startActivity(intent);
+        finish();
     }
     private void replaceFragment(Fragment fragment){
         FragmentManager fragmentManager = getSupportFragmentManager();

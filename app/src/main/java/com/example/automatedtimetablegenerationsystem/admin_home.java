@@ -1,5 +1,6 @@
 package com.example.automatedtimetablegenerationsystem;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
@@ -33,6 +34,9 @@ public class admin_home extends AppCompatActivity {
             } else if (item.getItemId() == R.id.user) {
                 replaceFragment(new adminUserFragment());
             }
+            else if (item.getItemId() == R.id.logout) {
+                logoutUser();
+            }
             // Uncomment the following if statement if needed
             // else if (item.getItemId() == R.id.add) {
             //    replaceFragment(new adminHomeFragment());
@@ -48,6 +52,12 @@ public class admin_home extends AppCompatActivity {
 //            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
 //            return insets;
 //        });
+    }
+    private void logoutUser() {
+        Intent intent = new Intent(this, login.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Clear back stack
+        startActivity(intent);
+        finish();
     }
     private void replaceFragment(Fragment fragment){
         FragmentManager fragmentManager = getSupportFragmentManager();
