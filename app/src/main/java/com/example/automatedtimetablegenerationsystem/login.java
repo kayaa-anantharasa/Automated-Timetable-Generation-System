@@ -27,6 +27,7 @@ public class login extends AppCompatActivity {
     Button login_btn;
     TextView signup_txt;
     TextView adminlogin_txt;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -34,6 +35,10 @@ public class login extends AppCompatActivity {
 
         signup_txt = findViewById(R.id.signuptxt);
         adminlogin_txt = findViewById(R.id.adminlogin);
+        login_matrix = findViewById(R.id.loginmatrix);
+        login_password = findViewById(R.id.loginpassword);
+        login_btn = findViewById(R.id.loginbtn);
+
         signup_txt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -41,6 +46,7 @@ public class login extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
         adminlogin_txt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -48,9 +54,6 @@ public class login extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-        login_matrix = findViewById(R.id.loginmatrix);
-        login_password = findViewById(R.id.loginpassword);
-        login_btn = findViewById(R.id.loginbtn);
 
         login_btn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -89,45 +92,39 @@ public class login extends AppCompatActivity {
         String userPassword = login_password.getText().toString().trim();
 
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference("users");
-        int matrixNumber = Integer.parseInt(userMatrixNumber);
-        Query checkUserQuery = reference.orderByChild("matrixNumber").equalTo(matrixNumber);
+        Query checkUserQuery = reference.orderByChild("matrixNumber").equalTo(userMatrixNumber);
 
         checkUserQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
                     for (DataSnapshot userSnapshot : snapshot.getChildren()) {
-
                         String encryptedPasswordFromDB = userSnapshot.child("password").getValue(String.class);
-
-
                         String encryptedEnteredPassword = encryptPassword(userPassword);
 
                         if (encryptedPasswordFromDB != null && encryptedPasswordFromDB.equals(encryptedEnteredPassword)) {
-
                             String nameFromDB = userSnapshot.child("name").getValue(String.class);
                             String emailFromDB = userSnapshot.child("email").getValue(String.class);
 
-                            Intent intent = new Intent(login.this, admin_home.class);
+                            Intent intent = new Intent(login.this, userMain.class);
                             intent.putExtra("name", nameFromDB);
                             intent.putExtra("email", emailFromDB);
                             startActivity(intent);
+                            finish(); // Close login activity
                             return;
                         } else {
-
                             Toast.makeText(login.this, "Invalid password", Toast.LENGTH_SHORT).show();
                         }
                     }
                 } else {
-
                     Toast.makeText(login.this, "User does not exist", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-
                 Toast.makeText(login.this, "Database Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                //Log.e("Database Error", error.getMessage()); // Log error for debugging
             }
         });
     }
@@ -147,5 +144,4 @@ public class login extends AppCompatActivity {
             return password; // fallback to plain password (not recommended)
         }
     }
-
 }

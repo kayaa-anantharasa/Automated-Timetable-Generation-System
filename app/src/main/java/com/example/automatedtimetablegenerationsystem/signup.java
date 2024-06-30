@@ -54,21 +54,21 @@ public class signup extends AppCompatActivity {
                     String name = signup_name.getText().toString();
                     String email = signup_email.getText().toString();
                     String matrixnumber = signup_matrixnumber.getText().toString();
-                    ;
+
                     String password = signup_password.getText().toString();
                     String cpassword = signup_cpassword.getText().toString();
 
-                    int matrixNumber = 0;
-                    try {
-                        matrixNumber = Integer.parseInt(signup_matrixnumber.getText().toString());
-                    } catch (NumberFormatException e) {
-
-                        Toast.makeText(signup.this, "Invalid matrix number", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
+//                    int matrixNumber = 0;
+//                    try {
+//                        matrixNumber = Integer.parseInt(signup_matrixnumber.getText().toString());
+//                    } catch (NumberFormatException e) {
+//
+//                        Toast.makeText(signup.this, "Invalid matrix number", Toast.LENGTH_SHORT).show();
+//                        return;
+//                    }
                     String encryptedPassword = encryptPassword(password);
 
-                    signupClass signupData = new signupClass(name, email, encryptedPassword, matrixNumber);
+                    signupClass signupData = new signupClass(name, email, encryptedPassword, matrixnumber);
                     reference.child(name).setValue(signupData);
                     Toast.makeText(signup.this, "You have signup successfully!", Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(signup.this, login.class);

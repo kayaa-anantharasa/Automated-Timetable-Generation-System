@@ -23,6 +23,7 @@ public class admin_home extends AppCompatActivity {
         binding = ActivityAdminHomeBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         replaceFragment(new adminHomeFragment());
+        binding.bottom.setBackground(null);
        // BottomNavigationView bottomNavigationView = findViewById(R.id.bottom);
         binding.bottom.setOnItemSelectedListener(item -> {
             if (item.getItemId() == R.id.home) {

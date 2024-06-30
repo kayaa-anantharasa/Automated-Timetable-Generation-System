@@ -2,7 +2,7 @@ package com.example.automatedtimetablegenerationsystem;
 
 public class signupClass {
     String name,email,password;
-    int matrixNumber;
+    String matrixNumber;
 
     public String getName() {
         return name;
@@ -28,15 +28,15 @@ public class signupClass {
         this.password = password;
     }
 
-    public int getMatrixNumber() {
+    public String getMatrixNumber() {
         return matrixNumber;
     }
 
-    public void setMatrixNumber(int matrixNumber) {
+    public void setMatrixNumber(String matrixNumber) {
         this.matrixNumber = matrixNumber;
     }
 
-    public signupClass(String name, String email, String password, int matrixNumber) {
+    public signupClass(String name, String email, String password, String matrixNumber) {
         this.name = name;
         this.email = email;
         this.password = password;

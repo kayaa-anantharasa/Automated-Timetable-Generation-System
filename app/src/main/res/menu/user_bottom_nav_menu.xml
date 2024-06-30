@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/userhome"
+        android:title="Home"
+
+        android:icon="@drawable/baseline_home_24"
+        />
+    <item
+        android:id="@+id/usertimetable"
+        android:title="Time Table"
+        android:icon="@drawable/baseline_preview_24"
+        />
+    <item android:id="@+id/useredit"
+        android:title="Edit"
+        android:icon="@drawable/baseline_edit_square_24"
+        />
+    <!--    <item-->
+    <!--        android:id="@+id/add"-->
+    <!--        android:title="Add"-->
+    <!--        android:icon="@drawable/baseline_add_box_24"-->
+
+    <!--        />-->
+</menu>
