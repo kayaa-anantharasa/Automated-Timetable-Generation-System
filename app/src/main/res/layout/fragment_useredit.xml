@@ -50,7 +50,7 @@
             tools:ignore="MissingConstraints" />
 
         <EditText
-
+            android:id="@+id/newPasswordEditText"
             android:layout_width="328dp"
             android:layout_height="45dp"
             android:layout_marginTop="384dp"
@@ -65,7 +65,8 @@
             tools:ignore="LabelFor" />
 
         <EditText
-            android:id="@+id/editTextText"
+            android:id="@+id/confirmPasswordEditText"
+
             android:layout_width="328dp"
             android:layout_height="45dp"
             android:layout_marginStart="48dp"
@@ -81,7 +82,7 @@
             tools:ignore="LabelFor,MissingConstraints" />
 
         <Button
-            android:id="@+id/button2"
+            android:id="@+id/changePasswordButton"
             android:layout_width="258dp"
             android:layout_height="47dp"
             android:layout_marginStart="78dp"

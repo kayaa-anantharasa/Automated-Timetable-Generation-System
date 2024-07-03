@@ -26,7 +26,8 @@ public class adminTimetableFragment extends Fragment {
     private MultiAutoCompleteTextView multiAutoCompleteTextViewDays;
     private Spinner spinnerTime;
     private Spinner spinnersemi;
-
+    private Spinner spinnerprogram;
+    private Spinner spinnerclass;
     private EditText subjectCodeEditText, subjectNameEditText, lecturerEditText;
     private Button addTimetableButton;
 
@@ -45,6 +46,8 @@ public class adminTimetableFragment extends Fragment {
         subjectNameEditText = view.findViewById(R.id.subjectname);
         lecturerEditText = view.findViewById(R.id.lecturer);
         addTimetableButton = view.findViewById(R.id.addtimetable);
+        spinnerprogram = view.findViewById(R.id.programme);
+        spinnerclass = view.findViewById(R.id.className);
 
         // Set up days MultiAutoCompleteTextView
         List<String> daysList = Arrays.asList("Monday", "Tuesday", "Wednesday", "Thursday", "Friday");
@@ -64,6 +67,18 @@ public class adminTimetableFragment extends Fragment {
         semiAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnersemi.setAdapter(semiAdapter);
 
+        //programe
+        List<String> programList = Arrays.asList("CST", "SCT","MRT","IIT");
+        ArrayAdapter<String> programmeAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, programList);
+        programmeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerprogram.setAdapter(programmeAdapter);
+
+
+        //class
+        List<String> classList = Arrays.asList("A1", "C3","D4","A5");
+        ArrayAdapter<String> classAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, classList);
+        classAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerclass.setAdapter(classAdapter);
         // Firebase reference
         timetableRef = FirebaseDatabase.getInstance().getReference().child("timetable");
 
@@ -85,15 +100,16 @@ public class adminTimetableFragment extends Fragment {
         String days = multiAutoCompleteTextViewDays.getText().toString().trim();
         String time = spinnerTime.getSelectedItem().toString();
         String semi = spinnersemi.getSelectedItem().toString();
-
+        String program = spinnerprogram.getSelectedItem().toString();
+        String classname = spinnerclass.getSelectedItem().toString();
         // Validate inputs
-        if (subjectCode.isEmpty() || subjectName.isEmpty() || lecturer.isEmpty() || days.isEmpty() || time.isEmpty() || semi.isEmpty()) {
+        if (subjectCode.isEmpty() || subjectName.isEmpty() || lecturer.isEmpty() || days.isEmpty() || time.isEmpty() || semi.isEmpty()  || classname.isEmpty()  || program.isEmpty() ) {
             Toast.makeText(requireContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show();
             return;
         }
 
         // Create timetable object
-        Timetable timetable = new Timetable(subjectCode, subjectName, lecturer, days, time, semi);
+        Timetable timetable = new Timetable(subjectCode, subjectName, lecturer, days, time, semi,program,classname);
 
         // Push timetable object to Firebase
         timetableRef.push().setValue(timetable);

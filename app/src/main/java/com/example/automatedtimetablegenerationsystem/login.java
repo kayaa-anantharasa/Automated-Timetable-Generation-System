@@ -1,6 +1,7 @@
 package com.example.automatedtimetablegenerationsystem;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -105,7 +106,11 @@ public class login extends AppCompatActivity {
                         if (encryptedPasswordFromDB != null && encryptedPasswordFromDB.equals(encryptedEnteredPassword)) {
                             String nameFromDB = userSnapshot.child("name").getValue(String.class);
                             String emailFromDB = userSnapshot.child("email").getValue(String.class);
-
+                            SharedPreferences preferences = getSharedPreferences("user_data", MODE_PRIVATE);
+                            SharedPreferences.Editor editor = preferences.edit();
+                            editor.putString("username", nameFromDB); // Save username
+                            editor.putString("email", emailFromDB); // Save email
+                            editor.apply();
                             Intent intent = new Intent(login.this, userMain.class);
                             intent.putExtra("name", nameFromDB);
                             intent.putExtra("email", emailFromDB);

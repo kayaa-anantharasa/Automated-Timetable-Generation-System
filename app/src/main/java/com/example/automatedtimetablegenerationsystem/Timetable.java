@@ -7,15 +7,18 @@ public class Timetable {
     private String days;
     private String time;
     private String semi;
-    public Timetable() {
-    }
-    public Timetable(String subjectCode, String subjectName, String lecturer, String days, String time,String semi) {
-        this.subjectCode = subjectCode;
+    private String program;
+    private String classname;
+
+    public Timetable(String subjectName, String subjectCode, String lecturer, String days, String time, String semi, String program, String classname) {
         this.subjectName = subjectName;
+        this.subjectCode = subjectCode;
         this.lecturer = lecturer;
         this.days = days;
         this.time = time;
         this.semi = semi;
+        this.program = program;
+        this.classname = classname;
     }
 
     public String getSubjectCode() {
@@ -57,6 +60,7 @@ public class Timetable {
     public void setTime(String time) {
         this.time = time;
     }
+
     public String getSemi() {
         return semi;
     }
@@ -64,4 +68,24 @@ public class Timetable {
     public void setSemi(String semi) {
         this.semi = semi;
     }
+
+    public String getProgram() {
+        return program;
+    }
+
+    public void setProgram(String program) {
+        this.program = program;
+    }
+
+    public String getClassname() {
+        return classname;
+    }
+
+    public void setClassname(String classname) {
+        this.classname = classname;
+    }
+
+    public Timetable() {
+    }
+
 }

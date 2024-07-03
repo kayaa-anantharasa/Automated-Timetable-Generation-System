@@ -14,6 +14,8 @@
     <string name="previous">Previous</string>
 
     <string name="spinner_prompt">Select time</string>
+    <string name="spinner_prompt1">Select Program</string>
+    <string name="spinner_prompt2">Select Class</string>
     <string name="lorem_ipsum">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris
         volutpat, dolor id interdum ullamcorper, risus dolor egestas lectus, sit amet mattis purus

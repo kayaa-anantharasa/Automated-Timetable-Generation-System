@@ -4,7 +4,7 @@
         <!-- Customize your light theme here. -->
 
         <item name="colorPrimary">@color/blue</item>
-
+<!--        <item name="secondPrimary">@color/white</item>-->
     </style>
 
     <style name="Theme.AutomatedTimetableGenerationSystem" parent="Base.Theme.AutomatedTimetableGenerationSystem" />

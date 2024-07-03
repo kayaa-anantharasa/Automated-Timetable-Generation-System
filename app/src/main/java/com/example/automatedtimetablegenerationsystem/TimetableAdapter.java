@@ -27,7 +27,7 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
 
     // Create ViewHolder to hold reference to each view item
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView daysTextView, lecturerTextView, subjectCodeTextView, subjectNameTextView, timeTextView,semiTextView;
+        TextView daysTextView, lecturerTextView, subjectCodeTextView, subjectNameTextView, timeTextView,semiTextView,programTextView,classTextView;
         Button deleteButton;
 
         public ViewHolder(@NonNull View itemView) {
@@ -38,6 +38,8 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
             subjectNameTextView = itemView.findViewById(R.id.subjectName);
             timeTextView = itemView.findViewById(R.id.time);
             semiTextView = itemView.findViewById(R.id.semi);
+            programTextView = itemView.findViewById(R.id.programname);
+            classTextView = itemView.findViewById(R.id.classname);
             deleteButton = itemView.findViewById(R.id.delete);
         }
     }
@@ -61,6 +63,8 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
         holder.subjectNameTextView.setText("Subject Name: " + entry.getSubjectName());
         holder.timeTextView.setText("Time: " + entry.getTime());
         holder.semiTextView.setText("Semester: " + entry.getSemi());
+        holder.programTextView.setText("Program: " + entry.getProgram());
+        holder.classTextView.setText("Class: " + entry.getClassname());
         // Implement delete button functionality here if needed
         holder.deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -69,6 +73,9 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
                 // Example: Notify adapter of item removal and update data source
                 // timetableEntries.remove(position);
                 // notifyItemRemoved(position);
+                timetableEntries.remove(position);
+                notifyItemRemoved(position);
+                notifyItemRangeChanged(position, timetableEntries.size());
 
             }
         });
