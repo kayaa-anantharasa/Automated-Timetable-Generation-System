@@ -106,11 +106,16 @@ public class login extends AppCompatActivity {
                         if (encryptedPasswordFromDB != null && encryptedPasswordFromDB.equals(encryptedEnteredPassword)) {
                             String nameFromDB = userSnapshot.child("name").getValue(String.class);
                             String emailFromDB = userSnapshot.child("email").getValue(String.class);
+                            String matrixNumberFromDB = userSnapshot.child("matrixNumber").getValue(String.class);
+
+                            // Save matrixNumber to SharedPreferences
                             SharedPreferences preferences = getSharedPreferences("user_data", MODE_PRIVATE);
                             SharedPreferences.Editor editor = preferences.edit();
+                            editor.putString("matrixNumber", matrixNumberFromDB); // Save matrixNumber
                             editor.putString("username", nameFromDB); // Save username
                             editor.putString("email", emailFromDB); // Save email
                             editor.apply();
+
                             Intent intent = new Intent(login.this, userMain.class);
                             intent.putExtra("name", nameFromDB);
                             intent.putExtra("email", emailFromDB);
@@ -129,7 +134,6 @@ public class login extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(login.this, "Database Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                //Log.e("Database Error", error.getMessage()); // Log error for debugging
             }
         });
     }
