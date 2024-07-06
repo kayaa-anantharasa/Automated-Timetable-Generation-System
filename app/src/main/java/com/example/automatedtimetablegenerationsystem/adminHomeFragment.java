@@ -25,6 +25,7 @@ public class adminHomeFragment extends Fragment {
     private RecyclerView recyclerView;
     private TimetableAdapter adapter;
     private List<Timetable> timetableEntries;
+    private DatabaseReference databaseRef;
 
     @Nullable
     @Override
@@ -38,8 +39,11 @@ public class adminHomeFragment extends Fragment {
         // Initialize timetableEntries
         timetableEntries = new ArrayList<>();
 
+        // Initialize Firebase database reference
+        databaseRef = FirebaseDatabase.getInstance().getReference("timetable");
+
         // Initialize adapter
-        adapter = new TimetableAdapter(getContext(), timetableEntries);
+        adapter = new TimetableAdapter(getContext(), timetableEntries, databaseRef);
         recyclerView.setAdapter(adapter);
 
         // Fetch data from Firebase Realtime Database
@@ -50,13 +54,13 @@ public class adminHomeFragment extends Fragment {
 
     // Method to fetch data from Firebase Realtime Database
     private void fetchDataFromFirebase() {
-        DatabaseReference databaseRef = FirebaseDatabase.getInstance().getReference("timetable"); // Replace with your database reference
         databaseRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 timetableEntries.clear(); // Clear existing entries
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     Timetable timetable = snapshot.getValue(Timetable.class);
+                    timetable.setKey(snapshot.getKey()); // Set the key from Firebase snapshot
                     timetableEntries.add(timetable);
                 }
                 adapter.notifyDataSetChanged(); // Notify adapter of data change

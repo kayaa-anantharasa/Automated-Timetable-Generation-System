@@ -9,7 +9,7 @@ public class Timetable {
     private String semi;
     private String program;
     private String classname;
-
+    private String key;
     public Timetable(String subjectName, String subjectCode, String lecturer, String days, String time, String semi, String program, String classname) {
         this.subjectName = subjectName;
         this.subjectCode = subjectCode;
@@ -20,7 +20,13 @@ public class Timetable {
         this.program = program;
         this.classname = classname;
     }
+    public String getKey() {
+        return key;
+    }
 
+    public void setKey(String key) {
+        this.key = key;
+    }
     public String getSubjectCode() {
         return subjectCode;
     }

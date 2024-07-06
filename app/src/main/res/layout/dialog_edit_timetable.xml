@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <!-- dialog_edit_timetable.xml -->
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <EditText
+            android:id="@+id/edit_days"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Days" />
+
+        <EditText
+            android:id="@+id/edit_lecturer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Lecturer" />
+
+        <EditText
+            android:id="@+id/edit_subjectCode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Subject Code" />
+
+        <EditText
+            android:id="@+id/edit_subjectName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Subject Name" />
+
+        <EditText
+            android:id="@+id/edit_time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Time" />
+
+        <EditText
+            android:id="@+id/edit_semi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Semester" />
+
+        <EditText
+            android:id="@+id/edit_program"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Program" />
+
+        <EditText
+            android:id="@+id/edit_classname"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Class Name" />
+
+        <Button
+            android:id="@+id/save_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Save" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

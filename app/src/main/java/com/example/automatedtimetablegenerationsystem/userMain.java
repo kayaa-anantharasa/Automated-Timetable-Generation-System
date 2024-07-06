@@ -24,7 +24,7 @@ public class userMain extends AppCompatActivity {
 
         binding = ActivityUserMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        replaceFragment(new adminHomeFragment());
+        replaceFragment(new userhomeFragment());
         binding.userbottom.setBackground(null);
 
         binding.userbottom.setOnItemSelectedListener(item -> {

@@ -34,7 +34,6 @@ public class usertimetableFragment extends Fragment {
     private Spinner spinnerFailedSemester;
     private Button addButton;
     private LinearLayout containerLayout;
-
     private DatabaseReference timetableRef;
 
     private String[] subjects = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"};
@@ -130,13 +129,24 @@ public class usertimetableFragment extends Fragment {
                     dialog.dismiss(); // Dismiss the dialog when cancel is clicked
                 });
 
-                // Add positive button (Check)
                 builder.setPositiveButton("Check", (dialog, which) -> {
-                    // Construct timetable entry key based on selected values
+                    // Collect selected subjects and classes
+                    List<String> selectedSubjects = new ArrayList<>();
+                    List<String> selectedClasses = new ArrayList<>();
+
+                    for (int i = 0; i < subjectSpinners.size(); i++) {
+                        String subject = subjectSpinners.get(i).getSelectedItem().toString();
+                        String className = classSpinners.get(i).getSelectedItem().toString();
+
+                        selectedSubjects.add(subject);
+                        selectedClasses.add(className);
+                    }
 
 
-                    dialog.dismiss(); // Dismiss the dialog when check is clicked
+                    // Dismiss the dialog
+                    dialog.dismiss();
                 });
+
 
                 // Show the AlertDialog
                 AlertDialog alertDialog = builder.create();
@@ -146,4 +156,5 @@ public class usertimetableFragment extends Fragment {
 
         return view;
     }
+
 }
