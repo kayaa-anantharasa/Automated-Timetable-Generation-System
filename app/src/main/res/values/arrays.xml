@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="subjects_array">
+        <item>Math</item>
+        <item>Science</item>
+        <item>History</item>
+        <!-- Add more subjects as needed -->
+    </string-array>
+
+    <string-array name="classes_array">
+        <item>Class A</item>
+        <item>Class B</item>
+        <item>Class C</item>
+        <!-- Add more classes as needed -->
+    </string-array>
+</resources>

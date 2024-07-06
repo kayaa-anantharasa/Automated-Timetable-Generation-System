@@ -4,20 +4,34 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal">
 
-    <EditText
-        android:id="@+id/editTextSubject"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:hint="Subject"
-        android:padding="10dp"/>
+<!--    <EditText-->
+<!--        android:id="@+id/editTextSubject"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_weight="1"-->
+<!--        android:hint="Subject"-->
+<!--        android:padding="10dp"/>-->
 
-    <EditText
-        android:id="@+id/editTextClass"
+<!--    <EditText-->
+<!--        android:id="@+id/editTextClass"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_weight="1"-->
+<!--        android:hint="Class"-->
+<!--        android:padding="10dp"/>-->
+
+
+    <Spinner
+        android:id="@+id/spinnerSubject"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:hint="Class"
-        android:padding="10dp"/>
+        android:layout_weight="1"/>
+
+
+    <Spinner
+        android:id="@+id/spinnerClass"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_weight="1"/>
 
 </LinearLayout>

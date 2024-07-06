@@ -109,7 +109,7 @@ public class adminTimetableFragment extends Fragment {
         }
 
         // Create timetable object
-        Timetable timetable = new Timetable(subjectCode, subjectName, lecturer, days, time, semi,program,classname);
+        Timetable timetable = new Timetable(subjectName,subjectCode, lecturer, days, time, semi,program,classname);
 
         // Push timetable object to Firebase
         timetableRef.push().setValue(timetable);

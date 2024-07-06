@@ -2,13 +2,12 @@ package com.example.automatedtimetablegenerationsystem;
 
 import android.app.AlertDialog;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -17,8 +16,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -31,201 +28,122 @@ import java.util.List;
 
 public class usertimetableFragment extends Fragment {
 
-    private Spinner spinnerSubject, spinnerSemester;
+    private Spinner spinnerCount;
+    private Spinner spinnerSemester;
+    private Spinner spinnerProgram;
+    private Spinner spinnerFailedSemester;
     private Button addButton;
     private LinearLayout containerLayout;
 
     private DatabaseReference timetableRef;
 
-    private int[] subjects = {1, 2, 3, 4, 5, 6, 7, 8}; // Example subjects as integers
-    private String[] semesters = {"Semester 1", "Semester 2", "Semester 3"}; // Example semesters
+    private String[] subjects = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"};
+    private String[] semesters = {"semi 01", "semi 02"};
+    private String[] programs = {"CST", "IIT", "EAG"};
+    private String[] subjectNames = {"AI", "Data Science", "EAG"};
+    private String[] classNames = {"C1", "A1", "B3"};
+
+    // Variables to store selected subject, class, program, and time
+    private String selectedProgram;
+
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_usertimetable, container, false);
 
-        spinnerSubject = view.findViewById(R.id.subject);
+        spinnerCount = view.findViewById(R.id.subject);
         spinnerSemester = view.findViewById(R.id.semi);
+        spinnerProgram = view.findViewById(R.id.currentprogram);
+        spinnerFailedSemester = view.findViewById(R.id.failedsemester);
         addButton = view.findViewById(R.id.addtimetable);
         containerLayout = view.findViewById(R.id.containerLayout);
 
         // Initialize Firebase Realtime Database reference
         timetableRef = FirebaseDatabase.getInstance().getReference().child("timetable");
 
-        // Create adapter for subject spinner
-        ArrayAdapter<Integer> subjectAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, toIntegerList(subjects));
-        subjectAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerSubject.setAdapter(subjectAdapter);
+        // Create adapters for spinners
+        ArrayAdapter<String> countAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, subjects);
+        countAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerCount.setAdapter(countAdapter);
 
         ArrayAdapter<String> semesterAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, semesters);
         semesterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerSemester.setAdapter(semesterAdapter);
 
-        // Button click listener
+        ArrayAdapter<String> failedSemesterAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, semesters);
+        failedSemesterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerFailedSemester.setAdapter(failedSemesterAdapter);
+
+        ArrayAdapter<String> programAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, programs);
+        programAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerProgram.setAdapter(programAdapter);
+
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Get selected subject count and semester
-                int selectedSubjectCount = (int) spinnerSubject.getSelectedItem();
-                String selectedSemester = spinnerSemester.getSelectedItem().toString();
+                // Get selected count, semester, program, and failed semester
+                int selectedCount = Integer.parseInt(spinnerCount.getSelectedItem().toString());
+                String selectedCurrentSemester = spinnerSemester.getSelectedItem().toString();
+                selectedProgram = spinnerProgram.getSelectedItem().toString();
+                String selectedFailedSemester = spinnerFailedSemester.getSelectedItem().toString();
 
                 // Create AlertDialog builder
                 AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
                 View dialogView = getLayoutInflater().inflate(R.layout.popup_layout, null);
                 builder.setView(dialogView);
-                builder.setTitle("Add Timetable");
+                builder.setTitle("Check Timetable");
 
                 LinearLayout popupContainerLayout = dialogView.findViewById(R.id.popupContainerLayout);
 
                 // Clear existing views if any
                 popupContainerLayout.removeAllViews();
 
-                // Add EditText fields for both subject and class in the same line
-                for (int i = 0; i < selectedSubjectCount; i++) {
-                    // Inflate EditText fields for subject and class
+                // Add spinners for subject and class in the same line
+                List<Spinner> subjectSpinners = new ArrayList<>();
+                List<Spinner> classSpinners = new ArrayList<>();
+
+                for (int i = 0; i < selectedCount; i++) {
                     View lineLayout = getLayoutInflater().inflate(R.layout.popup_edittext_fields, null);
+                    Spinner spinnerSubject = lineLayout.findViewById(R.id.spinnerSubject);
+                    Spinner spinnerClass = lineLayout.findViewById(R.id.spinnerClass);
 
-                    EditText editTextSubject = lineLayout.findViewById(R.id.editTextSubject);
-                    EditText editTextClass = lineLayout.findViewById(R.id.editTextClass);
+                    ArrayAdapter<String> subjectAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, subjectNames);
+                    subjectAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    spinnerSubject.setAdapter(subjectAdapter);
 
-                    editTextSubject.setHint("Subject name :");
-                    editTextClass.setHint("Class :");
+                    ArrayAdapter<String> classAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, classNames);
+                    classAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    spinnerClass.setAdapter(classAdapter);
 
-                    // Add inflated view to the container layout
                     popupContainerLayout.addView(lineLayout);
+
+                    // Add spinners to lists
+                    subjectSpinners.add(spinnerSubject);
+                    classSpinners.add(spinnerClass);
                 }
 
-                // After the for loop, add one additional EditText for the current program
-                View lineLayout = getLayoutInflater().inflate(R.layout.popup_edittext_fields, null);
-                EditText editTextSubject = lineLayout.findViewById(R.id.editTextSubject);
-                EditText editTextClass = lineLayout.findViewById(R.id.editTextClass);
-
-                editTextSubject.setHint("Current Program");
-                editTextClass.setVisibility(View.GONE); // Hide the class EditText
-
-                // Add inflated view to the container layout
-                popupContainerLayout.addView(lineLayout);
-
-                // Add positive button (optional)
-                builder.setPositiveButton("Save", (dialog, which) -> {
-                    // Validate and save data
-                    if (saveDataToDatabase()) {
-                        Toast.makeText(requireContext(), "Data saved successfully", Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-                // Add negative button (optional)
+                // Add negative button (cancel)
                 builder.setNegativeButton("Cancel", (dialog, which) -> {
                     // Handle cancel button click
                     Toast.makeText(requireContext(), "Cancel clicked", Toast.LENGTH_SHORT).show();
+                    dialog.dismiss(); // Dismiss the dialog when cancel is clicked
                 });
 
-                // Create and show the AlertDialog
-                AlertDialog dialog = builder.create();
-                dialog.show();
+                // Add positive button (Check)
+                builder.setPositiveButton("Check", (dialog, which) -> {
+                    // Construct timetable entry key based on selected values
+
+
+                    dialog.dismiss(); // Dismiss the dialog when check is clicked
+                });
+
+                // Show the AlertDialog
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
             }
         });
 
         return view;
-    }
-
-    private List<Integer> toIntegerList(int[] array) {
-        List<Integer> list = new ArrayList<>();
-        for (int value : array) {
-            list.add(value);
-        }
-        return list;
-    }
-
-    private boolean saveDataToDatabase() {
-        // Retrieve entered data and perform validation
-        String day = "Friday"; // Example day
-        String time = "9:00 AM"; // Example time
-
-        LinearLayout popupContainerLayout = (LinearLayout) getLayoutInflater().inflate(R.layout.popup_layout, null)
-                .findViewById(R.id.popupContainerLayout);
-
-        List<Timetable> entriesToSave = new ArrayList<>();
-        for (int i = 0; i < popupContainerLayout.getChildCount(); i++) {
-            View lineLayout = popupContainerLayout.getChildAt(i);
-            EditText editTextSubject = lineLayout.findViewById(R.id.editTextSubject);
-            EditText editTextClass = lineLayout.findViewById(R.id.editTextClass);
-
-            String subjectName = editTextSubject.getText().toString().trim();
-            String className = editTextClass.getText().toString().trim();
-
-            // Perform validation if needed
-
-            // Check for schedule conflict
-            if (checkForScheduleConflict(day, time, subjectName)) {
-                Toast.makeText(requireContext(), "There's already a class scheduled at this time for " + subjectName, Toast.LENGTH_SHORT).show();
-                return false; // Data not saved due to conflict
-            }
-
-            // Generate a unique key for the new timetable entry
-            String timetableId = timetableRef.push().getKey();
-
-            // Create a TimetableEntry object
-            Timetable entry = new Timetable(
-                    timetableId,
-                    "A1",
-                    day,
-                    "Ramanan",
-                    "CST",
-                    "semi 01",
-                    subjectName,
-                    "CSC001"
-            );
-
-            entriesToSave.add(entry);
-        }
-
-        // Save data to Firebase Realtime Database
-        for (Timetable entry : entriesToSave) {
-            timetableRef.child(entry.getSubjectName()).setValue(entry)
-                    .addOnSuccessListener(new OnSuccessListener<Void>() {
-                        @Override
-                        public void onSuccess(Void aVoid) {
-                            // Data successfully saved
-                            Toast.makeText(requireContext(), "Data saved successfully", Toast.LENGTH_SHORT).show();
-                        }
-                    })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            // Failed to save data
-                            Toast.makeText(requireContext(), "Failed to save data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    });
-        }
-
-        return true; // Data saved successfully
-    }
-
-    private boolean checkForScheduleConflict(String day, String time, String subjectName) {
-        // Query Firebase to check if there's already a class scheduled with the same subject, day, and time
-        Query query = timetableRef.orderByChild("days").equalTo(day);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    Timetable entry = snapshot.getValue(Timetable.class);
-                    if (entry != null && entry.getSubjectName().equals(subjectName)) {
-                        // Check for time conflict (not implemented in this example)
-                      //  return false; // Conflict found
-                    }
-                }
-                // No conflict found
-                // Proceed with saving data
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                // Handle database error
-            }
-        });
-
-        return false; // Assuming no conflict for demonstration
     }
 }
