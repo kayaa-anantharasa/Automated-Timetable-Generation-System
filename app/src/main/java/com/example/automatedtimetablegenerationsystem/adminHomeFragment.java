@@ -60,8 +60,10 @@ public class adminHomeFragment extends Fragment {
                 timetableEntries.clear(); // Clear existing entries
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     Timetable timetable = snapshot.getValue(Timetable.class);
-                    timetable.setKey(snapshot.getKey()); // Set the key from Firebase snapshot
-                    timetableEntries.add(timetable);
+                    if (timetable != null) {
+                        timetable.setKey(snapshot.getKey()); // Set the key from Firebase snapshot
+                        timetableEntries.add(timetable);
+                    }
                 }
                 adapter.notifyDataSetChanged(); // Notify adapter of data change
             }
