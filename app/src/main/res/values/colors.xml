@@ -5,6 +5,8 @@
     <color name="blue">#38B6FF</color>
     <color name="teal">#3F51B5</color>
     <color name="dark_gray">#23454343</color>
+    <color name="dark_blue">#80BEDB</color>
     <color name="back">#D5E8F2</color>
     <color name="teal_dark">#00796B</color>
+    <color name="teal_dark1">#4C5251</color>
 </resources>

@@ -1,12 +1,15 @@
 package com.example.automatedtimetablegenerationsystem;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -28,6 +31,7 @@ public class userhomeFragment extends Fragment {
     private String[] semesters = {"semi 01", "semi 02"};
     private String[] programs = {"CST", "IIT", "EAG"};
     private Button showTimetableButton;
+    private ProgressBar progressBar;
     private DatabaseReference timetableRef;
     private List<TimetableEntry> timetableData = new ArrayList<>();
 
@@ -39,6 +43,7 @@ public class userhomeFragment extends Fragment {
         // Initialize Spinners
         spinnerSemester = view.findViewById(R.id.semesters);
         spinnerProgram = view.findViewById(R.id.program);
+        progressBar = view.findViewById(R.id.progressBar);
 
         // Initialize Spinners with adapters
         ArrayAdapter<String> semesterAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, semesters);
@@ -65,10 +70,13 @@ public class userhomeFragment extends Fragment {
 
         return view;
     }
+
     private void fetchTimetable(String semester, String program) {
+        progressBar.setVisibility(View.VISIBLE);
         timetableRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                progressBar.setVisibility(View.GONE);
                 if (snapshot.exists()) {
                     // Clear previous data
                     timetableData.clear();
@@ -94,8 +102,7 @@ public class userhomeFragment extends Fragment {
                     if (!timetableData.isEmpty()) {
                         // Display Toast message
                         Toast.makeText(requireContext(), "Timetable loaded for " + semester + " - " + program, Toast.LENGTH_SHORT).show();
-
-
+                        showTimetableDialog(timetableData);
                     } else {
                         // If no timetable data found for the selected semester and program
                         Toast.makeText(requireContext(), "No timetable found for " + semester + " - " + program, Toast.LENGTH_SHORT).show();
@@ -108,10 +115,39 @@ public class userhomeFragment extends Fragment {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
+                progressBar.setVisibility(View.GONE);
                 Toast.makeText(requireContext(), "Failed to load timetable: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
+    private void showTimetableDialog(List<TimetableEntry> timetableEntries) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        builder.setTitle("Timetable Details");
 
+        // Create a custom layout for the dialog
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.item_timetable, null);
+        builder.setView(dialogView);
+
+        // Initialize the TextViews in the dialog
+        TextView detailsTextView = dialogView.findViewById(R.id.detailsTextView);
+        StringBuilder detailsBuilder = new StringBuilder();
+
+        for (TimetableEntry entry : timetableEntries) {
+            detailsBuilder.append("Program: ").append(entry.getProgram()).append("\n");
+            detailsBuilder.append("Semester: ").append(entry.getSemi()).append("\n");
+            detailsBuilder.append("Class: ").append(entry.getClassname()).append("\n");
+            detailsBuilder.append("Days: ").append(entry.getDays()).append("\n");
+            detailsBuilder.append("Lecturer: ").append(entry.getLecturer()).append("\n");
+            detailsBuilder.append("Subject Code: ").append(entry.getSubjectCode()).append("\n");
+            detailsBuilder.append("Subject Name: ").append(entry.getSubjectName()).append("\n");
+            detailsBuilder.append("Time: ").append(entry.getTime()).append("\n\n");
+        }
+
+        detailsTextView.setText(detailsBuilder.toString());
+
+        builder.setPositiveButton("OK", null);
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
 }
