@@ -1,7 +1,12 @@
 package com.example.automatedtimetablegenerationsystem;
-
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,9 +16,11 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
+import android.graphics.pdf.PdfDocument;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 
 import com.google.firebase.database.DataSnapshot;
@@ -23,8 +30,13 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class usertimetableFragment extends Fragment {
 
@@ -42,9 +54,8 @@ public class usertimetableFragment extends Fragment {
     private String[] subjectNames = {"AI", "Data Science", "EAG"};
     private String[] classNames = {"C1", "A1", "B3"};
 
-    // Variables to store selected subject, class, program, and time
+    // Variable to store selected program
     private String selectedProgram;
-
 
     @Nullable
     @Override
@@ -142,11 +153,9 @@ public class usertimetableFragment extends Fragment {
                         selectedClasses.add(className);
                     }
 
-
-                    // Dismiss the dialog
-                    dialog.dismiss();
+                    // Check timetable conflicts for current and failed semesters
+                    checkTimetableConflicts(selectedSubjects, selectedClasses, selectedProgram, selectedCurrentSemester, selectedFailedSemester);
                 });
-
 
                 // Show the AlertDialog
                 AlertDialog alertDialog = builder.create();
@@ -157,4 +166,180 @@ public class usertimetableFragment extends Fragment {
         return view;
     }
 
+    private void checkTimetableConflicts(List<String> selectedSubjects, List<String> selectedClasses, String selectedProgram,
+                                         String currentSemester, String failedSemester) {
+        // Initialize query to check if there are any conflicts between current and failed semesters
+        Query queryCurrentSemester = timetableRef.orderByChild("semi_program").equalTo(currentSemester + "_" + selectedProgram);
+        Query queryFailedSemester = timetableRef.orderByChild("semi_program").equalTo(failedSemester + "_" + selectedProgram);
+
+        queryCurrentSemester.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                // Map to store timetable entries for current semester
+                Map<String, String> currentSemesterEntries = new HashMap<>();
+
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                    String entrySubject = dataSnapshot.child("subjectName").getValue(String.class);
+                    String entryClass = dataSnapshot.child("classname").getValue(String.class);
+
+                    // Store entry with subject as key and class as value
+                    if (entrySubject != null && entryClass != null) {
+                        currentSemesterEntries.put(entrySubject, entryClass);
+                    }
+                }
+
+                // Check for conflicts in current semester
+                boolean currentSemesterConflict = checkConflicts(selectedSubjects, selectedClasses, currentSemesterEntries);
+
+                // If there is a conflict in current semester, show message and return
+                if (currentSemesterConflict) {
+                    Toast.makeText(requireContext(), "Timetable conflicts found in current semester", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // Check for conflicts in failed semester if selected
+                if (!failedSemester.equals("None")) {
+                    queryFailedSemester.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            // Map to store timetable entries for failed semester
+                            Map<String, String> failedSemesterEntries = new HashMap<>();
+
+                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                String entrySubject = dataSnapshot.child("subjectName").getValue(String.class);
+                                String entryClass = dataSnapshot.child("classname").getValue(String.class);
+
+                                // Store entry with subject as key and class as value
+                                if (entrySubject != null && entryClass != null) {
+                                    failedSemesterEntries.put(entrySubject, entryClass);
+                                }
+                            }
+
+                            // Check for conflicts in failed semester
+                            boolean failedSemesterConflict = checkConflicts(selectedSubjects, selectedClasses, failedSemesterEntries);
+
+                            // If there is a conflict in failed semester, show message
+                            if (failedSemesterConflict) {
+                                Toast.makeText(requireContext(), "Timetable conflicts found in failed semester", Toast.LENGTH_SHORT).show();
+                            } else {
+                                // If no conflicts found, proceed to add timetable entries
+                                addTimetableEntries(selectedSubjects, selectedClasses, selectedProgram, currentSemester);
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            Log.e("Firebase", "Error checking failed semester entries: " + error.getMessage());
+                            Toast.makeText(requireContext(), "Failed to check failed semester entries: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } else {
+                    // If no failed semester selected, proceed to add timetable entries
+                    addTimetableEntries(selectedSubjects, selectedClasses, selectedProgram, currentSemester);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("Firebase", "Error checking current semester entries: " + error.getMessage());
+                Toast.makeText(requireContext(), "Failed to check current semester entries: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private boolean checkConflicts(List<String> selectedSubjects, List<String> selectedClasses, Map<String, String> semesterEntries) {
+        // Iterate through selected subjects and classes to check for conflicts
+        for (int i = 0; i < selectedSubjects.size(); i++) {
+            String subject = selectedSubjects.get(i);
+            String className = selectedClasses.get(i);
+
+            // Check if the subject already exists with a different class in the same semester
+            if (semesterEntries.containsKey(subject) && !semesterEntries.get(subject).equals(className)) {
+                return true; // Conflict found
+            }
+        }
+        return false; // No conflicts found
+    }
+
+    private void addTimetableEntries(List<String> selectedSubjects, List<String> selectedClasses, String selectedProgram, String currentSemester) {
+        // Show success message with Toast
+        Toast.makeText(requireContext(), "Timetable entries added successfully for " + currentSemester, Toast.LENGTH_SHORT).show();
+
+        // Ask user if they want to download as PDF
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        builder.setTitle("Download Timetable as PDF?");
+        builder.setMessage("Do you want to download the timetable as a PDF?");
+        builder.setPositiveButton("Yes", (dialog, which) -> {
+            // Generate and download PDF
+            generateAndDownloadPDF(selectedSubjects, selectedClasses, currentSemester);
+        });
+        builder.setNegativeButton("No", (dialog, which) -> {
+            // Handle if user chooses not to download
+            dialog.dismiss();
+        });
+        builder.show();
+    }
+
+    private void generateAndDownloadPDF(List<String> selectedSubjects, List<String> selectedClasses, String currentSemester) {
+        // Create a new PDF document
+        PdfDocument document = new PdfDocument();
+        PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(300, 600, 1).create();
+        PdfDocument.Page page = document.startPage(pageInfo);
+        Canvas canvas = page.getCanvas();
+
+        // Set up the text to print
+        StringBuilder timetableDetails = new StringBuilder();
+        timetableDetails.append("Timetable Entries for ").append(currentSemester).append("\n\n");
+
+        // Iterate through selected subjects and classes to add details to StringBuilder
+        for (int i = 0; i < selectedSubjects.size(); i++) {
+            String subject = selectedSubjects.get(i);
+            String className = selectedClasses.get(i);
+
+            // Append subject and class details to StringBuilder
+            timetableDetails.append("Subject: ").append(subject).append("\n");
+            timetableDetails.append("Class: ").append(className).append("\n\n");
+
+            // Draw text on the PDF canvas
+            canvas.drawText("Subject: " + subject, 10, (i + 1) * 25, null);
+            canvas.drawText("Class: " + className, 10, (i + 2) * 25, null);
+        }
+
+        // Finish the page
+        document.finishPage(page);
+
+        // Save the document
+        try {
+            File filePath = new File(Environment.getExternalStorageDirectory(), "Timetable.pdf");
+            document.writeTo(new FileOutputStream(filePath));
+            Toast.makeText(requireContext(), "Timetable downloaded as PDF", Toast.LENGTH_SHORT).show();
+
+            // Optionally, you can open the downloaded PDF file
+            openPDF(filePath.getAbsolutePath());
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(requireContext(), "Error downloading timetable as PDF", Toast.LENGTH_SHORT).show();
+        }
+
+        // Close the document
+        document.close();
+    }
+
+    private void openPDF(String filePath) {
+        // Open the PDF file using an Intent
+        File file = new File(filePath);
+        Uri pdfUri = FileProvider.getUriForFile(requireContext(), requireContext().getApplicationContext().getPackageName() + ".provider", file);
+
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setDataAndType(pdfUri, "application/pdf");
+        intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+
+        try {
+            startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(requireContext(), "No application available to view PDF", Toast.LENGTH_SHORT).show();
+        }
+    }
 }
