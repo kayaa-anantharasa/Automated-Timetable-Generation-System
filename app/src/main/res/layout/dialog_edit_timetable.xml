@@ -7,94 +7,164 @@
     android:padding="16dp"
     android:background="@color/white">
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Days"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        android:paddingBottom="4dp"
+        android:textStyle="bold"/>
+
     <EditText
         android:id="@+id/editDays"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Days"
+        android:hint="Enter days"
         android:inputType="text"
         android:padding="12dp"
         android:layout_marginBottom="8dp"
         android:background="@color/white"
         android:textColor="@color/black"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Lecturer"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        android:paddingBottom="4dp"
+        android:textStyle="bold"/>
 
     <EditText
         android:id="@+id/editLecturer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Lecturer"
+        android:hint="Enter lecturer"
         android:inputType="text"
         android:padding="12dp"
         android:layout_marginBottom="8dp"
         android:background="@color/white"
         android:textColor="@color/black"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Subject Code"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        android:paddingBottom="4dp"
+        android:textStyle="bold"/>
 
     <EditText
         android:id="@+id/editSubjectCode"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Subject Code"
+        android:hint="Enter subject code"
         android:inputType="text"
         android:padding="12dp"
         android:layout_marginBottom="8dp"
         android:background="@color/white"
         android:textColor="@color/black"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Subject Name"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        android:paddingBottom="4dp"
+        android:textStyle="bold"/>
 
     <EditText
         android:id="@+id/editSubjectName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Subject Name"
+        android:hint="Enter subject name"
         android:inputType="text"
         android:padding="12dp"
         android:layout_marginBottom="8dp"
         android:background="@color/white"
         android:textColor="@color/black"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Time"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        android:paddingBottom="4dp"
+        android:textStyle="bold"/>
 
     <EditText
         android:id="@+id/editTime"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Time"
+        android:hint="Enter time"
         android:inputType="text"
         android:padding="12dp"
         android:layout_marginBottom="8dp"
         android:background="@color/white"
         android:textColor="@color/black"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Semester"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        android:paddingBottom="4dp"
+        android:textStyle="bold"/>
 
     <EditText
         android:id="@+id/editSemi"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Semester"
+        android:hint="Enter semester"
         android:inputType="text"
         android:padding="12dp"
         android:layout_marginBottom="8dp"
         android:background="@color/white"
         android:textColor="@color/black"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Program"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        android:paddingBottom="4dp"
+        android:textStyle="bold"/>
 
     <EditText
         android:id="@+id/editProgram"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Program"
+        android:hint="Enter program"
         android:inputType="text"
         android:padding="12dp"
         android:layout_marginBottom="8dp"
         android:background="@color/white"
         android:textColor="@color/black"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Class"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        android:paddingBottom="4dp"
+        android:textStyle="bold"/>
 
     <EditText
         android:id="@+id/editClass"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Class"
+        android:hint="Enter class"
         android:inputType="text"
         android:padding="12dp"
         android:layout_marginBottom="8dp"
         android:background="@color/white"
         android:textColor="@color/black"/>
-
-
 
 </LinearLayout>

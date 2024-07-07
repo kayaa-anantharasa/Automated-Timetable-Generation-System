@@ -6,42 +6,78 @@
     android:layout_height="match_parent"
     tools:context=".userhomeFragment">
 
+    <TextView
+        android:id="@+id/pageHeading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="132dp"
+        android:layout_marginTop="16dp"
+        android:text="Generate Timetable"
+        android:textColor="@android:color/holo_blue_dark"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/semesterHeading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="16dp"
+        android:text="Select Current Semester"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/pageHeading"/>
+
     <Spinner
         android:id="@+id/semesters"
         android:layout_width="347dp"
         android:layout_height="48dp"
         android:layout_marginStart="32dp"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="32dp"
         android:prompt="@string/spinner_semi"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/semesterHeading" />
+
+    <TextView
+        android:id="@+id/programHeading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="32dp"
+        android:text="Select Current Program"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/semesters"/>
 
     <Spinner
         android:id="@+id/program"
         android:layout_width="347dp"
         android:layout_height="48dp"
         android:layout_marginStart="32dp"
-        android:layout_marginTop="114dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="32dp"
         android:prompt="@string/spinner_program"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/programHeading" />
 
     <Button
         android:id="@+id/showtimetable"
         android:layout_width="168dp"
         android:layout_height="49dp"
-        android:layout_marginStart="138dp"
-        android:layout_marginTop="184dp"
-        android:layout_marginEnd="105dp"
+        android:layout_marginTop="24dp"
         android:text="Click"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/program" />
 
     <ProgressBar
         android:id="@+id/progressBar"
