@@ -8,20 +8,45 @@
 
     <!-- Spinner for selecting subject -->
 
-    <!-- Spinner for selecting semester -->
 
-    <!-- Add button -->
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="117dp"
+        android:layout_marginTop="31dp"
+        android:layout_marginEnd="118dp"
+        android:layout_marginBottom="673dp"
+        android:text="Generate Timetable"
+        android:textColor="@color/blue"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Container layout for dynamically added EditTexts -->
+    <TextView
+        android:id="@+id/textView122"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="34dp"
+        android:layout_marginTop="107dp"
+        android:layout_marginEnd="194dp"
+        android:layout_marginBottom="605dp"
+        android:text="Select your Current Semester"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Spinner
         android:id="@+id/subject"
         android:layout_width="341dp"
         android:layout_height="54dp"
-        android:layout_marginStart="33dp"
-        android:layout_marginTop="120dp"
-        android:layout_marginEnd="37dp"
-        android:layout_marginBottom="557dp"
+        android:layout_marginStart="34dp"
+        android:layout_marginTop="270dp"
+        android:layout_marginEnd="36dp"
+        android:layout_marginBottom="407dp"
         android:prompt="@string/spinner_subject"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -33,10 +58,12 @@
         android:layout_width="347dp"
         android:layout_height="48dp"
         android:layout_marginStart="32dp"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="152dp"
         android:layout_marginEnd="32dp"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="531dp"
         android:prompt="@string/spinner_semi"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -45,9 +72,9 @@
         android:layout_width="347dp"
         android:layout_height="48dp"
         android:layout_marginStart="34dp"
-        android:layout_marginTop="207dp"
+        android:layout_marginTop="396dp"
         android:layout_marginEnd="30dp"
-        android:layout_marginBottom="476dp"
+        android:layout_marginBottom="287dp"
         android:prompt="@string/spinner_program"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -59,9 +86,9 @@
         android:layout_width="347dp"
         android:layout_height="48dp"
         android:layout_marginStart="34dp"
-        android:layout_marginTop="288dp"
+        android:layout_marginTop="531dp"
         android:layout_marginEnd="30dp"
-        android:layout_marginBottom="395dp"
+        android:layout_marginBottom="152dp"
         android:prompt="@string/spinner_failedsemi"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -72,17 +99,15 @@
         android:id="@+id/addtimetable"
         android:layout_width="168dp"
         android:layout_height="49dp"
-        android:layout_marginStart="145dp"
-        android:layout_marginTop="366dp"
-        android:layout_marginEnd="98dp"
-        android:layout_marginBottom="316dp"
+        android:layout_marginStart="121dp"
+        android:layout_marginTop="591dp"
+        android:layout_marginEnd="122dp"
+        android:layout_marginBottom="91dp"
         android:text="Add"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <LinearLayout
         android:id="@+id/containerLayout"
@@ -92,6 +117,48 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:orientation="vertical" />
+
+    <TextView
+        android:id="@+id/textView11"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="34dp"
+        android:layout_marginTop="490dp"
+        android:layout_marginEnd="232dp"
+        android:layout_marginBottom="222dp"
+        android:text="Select repeat semester"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textView125"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="34dp"
+        android:layout_marginTop="356dp"
+        android:layout_marginEnd="251dp"
+        android:layout_marginBottom="356dp"
+        android:text="Select your program"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textView12345"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="34dp"
+        android:layout_marginTop="236dp"
+        android:layout_marginEnd="163dp"
+        android:layout_marginBottom="476dp"
+        android:text="Select Number of Repeat Subjects"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

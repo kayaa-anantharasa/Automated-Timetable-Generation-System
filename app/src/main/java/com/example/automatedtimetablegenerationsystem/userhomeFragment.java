@@ -1,14 +1,19 @@
 package com.example.automatedtimetablegenerationsystem;
 
 import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,7 +28,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class userhomeFragment extends Fragment {
     private Spinner spinnerSemester;
@@ -120,34 +127,95 @@ public class userhomeFragment extends Fragment {
             }
         });
     }
-
     private void showTimetableDialog(List<TimetableEntry> timetableEntries) {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        builder.setTitle("Timetable Details");
+        //builder.setTitle("Timetable Details");
 
-        // Create a custom layout for the dialog
-        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.item_timetable, null);
+        // Inflate the custom layout for the dialog
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_timetable, null);
         builder.setView(dialogView);
 
-        // Initialize the TextViews in the dialog
-        TextView detailsTextView = dialogView.findViewById(R.id.detailsTextView);
-        StringBuilder detailsBuilder = new StringBuilder();
+        // Initialize the TableLayout in the dialog
+        TableLayout tableLayout = dialogView.findViewById(R.id.timetableTable);
 
+        // Add table headers
+        TableRow headerRow = new TableRow(requireContext());
+        String[] headers = {"Time", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"};
+        for (String header : headers) {
+            TextView headerTextView = new TextView(requireContext());
+            headerTextView.setText(header);
+            headerTextView.setPadding(16, 16, 16, 16);
+            headerTextView.setTextSize(10);
+            headerTextView.setTypeface(null, Typeface.BOLD);
+            headerTextView.setBackgroundColor(getResources().getColor(R.color.white));
+            headerTextView.setTextColor(getResources().getColor(R.color.black));
+            headerRow.addView(headerTextView);
+        }
+        tableLayout.addView(headerRow);
+
+        // Define time slots
+        String[] timeSlots = {"8:00 AM - 9:00 AM", "9:00 AM - 10:00 AM", "10:00 AM - 11:00 AM", "11:00 AM - 12:00 PM",
+                "12:00 PM - 1:00 PM", "1:00 PM - 2:00 PM", "2:00 PM - 3:00 PM", "3:00 PM - 4:00 PM",
+                "4:00 PM - 5:00 PM", "5:00 PM - 6:00 PM"};
+
+        // Create a map to hold timetable entries by day and time slot
+        Map<String, Map<String, TimetableEntry>> timetableMap = new HashMap<>();
+        for (String day : headers) {
+            if (!day.equals("Time")) {
+                timetableMap.put(day, new HashMap<>());
+            }
+        }
         for (TimetableEntry entry : timetableEntries) {
-            detailsBuilder.append("Program: ").append(entry.getProgram()).append("\n");
-            detailsBuilder.append("Semester: ").append(entry.getSemi()).append("\n");
-            detailsBuilder.append("Class: ").append(entry.getClassname()).append("\n");
-            detailsBuilder.append("Days: ").append(entry.getDays()).append("\n");
-            detailsBuilder.append("Lecturer: ").append(entry.getLecturer()).append("\n");
-            detailsBuilder.append("Subject Code: ").append(entry.getSubjectCode()).append("\n");
-            detailsBuilder.append("Subject Name: ").append(entry.getSubjectName()).append("\n");
-            detailsBuilder.append("Time: ").append(entry.getTime()).append("\n\n");
+            String[] days = entry.getDays().split(",\\s*"); // Split days string into individual days
+            for (String day : days) {
+                if (timetableMap.containsKey(day)) {
+                    timetableMap.get(day).put(entry.getTime(), entry);
+                }
+            }
         }
 
-        detailsTextView.setText(detailsBuilder.toString());
+        // Populate the table rows
+        for (String timeSlot : timeSlots) {
+            TableRow row = new TableRow(requireContext());
 
-        builder.setPositiveButton("OK", null);
+            // Time column
+            TextView timeTextView = new TextView(requireContext());
+            timeTextView.setText(timeSlot);
+            timeTextView.setPadding(16, 16, 16, 16);
+            timeTextView.setTextSize(6);
+            timeTextView.setTypeface(null, Typeface.BOLD);
+            timeTextView.setBackgroundColor(getResources().getColor(R.color.blue));
+            timeTextView.setTextColor(getResources().getColor(R.color.white));
+            row.addView(timeTextView);
+
+            // Day columns
+            for (String day : headers) {
+                if (!day.equals("Time")) {
+                    TextView cellTextView = new TextView(requireContext());
+                    cellTextView.setPadding(16, 16, 16, 16);
+                    cellTextView.setTextSize(10);
+                    cellTextView.setBackgroundColor(getResources().getColor(R.color.grey));
+                    cellTextView.setTextColor(getResources().getColor(R.color.black));
+                    TimetableEntry entry = timetableMap.get(day).get(timeSlot);
+                    if (entry != null) {
+                        String cellText = entry.getSubjectName() + "\n" + entry.getLecturer() + "\n" + entry.getClassname();
+                        cellTextView.setText(cellText);
+                    }
+                    row.addView(cellTextView);
+                }
+            }
+            tableLayout.addView(row);
+        }
+
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.dismiss(); // Dismiss dialog on OK button click
+            }
+        });
+
         AlertDialog dialog = builder.create();
         dialog.show();
     }
+
 }
