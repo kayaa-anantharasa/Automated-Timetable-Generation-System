@@ -1,9 +1,12 @@
 package com.example.automatedtimetablegenerationsystem;
-import android.graphics.Canvas;
-import android.graphics.Paint;
+
+import static android.content.ContentValues.TAG;
+
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.graphics.Canvas;
+import android.graphics.pdf.PdfDocument;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -16,7 +19,6 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
-import android.graphics.pdf.PdfDocument;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -34,9 +36,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class usertimetableFragment extends Fragment {
 
@@ -141,7 +141,6 @@ public class usertimetableFragment extends Fragment {
                 });
 
                 builder.setPositiveButton("Check", (dialog, which) -> {
-                    // Collect selected subjects and classes
                     List<String> selectedSubjects = new ArrayList<>();
                     List<String> selectedClasses = new ArrayList<>();
 
@@ -153,7 +152,7 @@ public class usertimetableFragment extends Fragment {
                         selectedClasses.add(className);
                     }
 
-                    // Check timetable conflicts for current and failed semesters
+                    // Check for timetable conflicts
                     checkTimetableConflicts(selectedSubjects, selectedClasses, selectedProgram, selectedCurrentSemester, selectedFailedSemester);
                 });
 
@@ -167,175 +166,175 @@ public class usertimetableFragment extends Fragment {
     }
 
     private void checkTimetableConflicts(List<String> selectedSubjects, List<String> selectedClasses, String selectedProgram,
-                                         String currentSemester, String failedSemester) {
-        // Initialize query to check if there are any conflicts between current and failed semesters
-        Query queryCurrentSemester = timetableRef.orderByChild("semi_program").equalTo(currentSemester + "_" + selectedProgram);
-        Query queryFailedSemester = timetableRef.orderByChild("semi_program").equalTo(failedSemester + "_" + selectedProgram);
+                                         String selectedCurrentSemester, String selectedFailedSemester) {
+        // Initialize Firebase Realtime Database reference
+        DatabaseReference timetableRef = FirebaseDatabase.getInstance().getReference().child("timetable");
 
-        queryCurrentSemester.addListenerForSingleValueEvent(new ValueEventListener() {
+        // Retrieve timetable data for current semester and program
+        List<String> currenttimetableEntries = new ArrayList<>();
+        Query currentSemesterQuery = timetableRef.orderByChild("program").equalTo(selectedProgram);
+        currentSemesterQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                // Map to store timetable entries for current semester
-                Map<String, String> currentSemesterEntries = new HashMap<>();
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    String time = snapshot.child("time").getValue(String.class);
+                    String day = snapshot.child("days").getValue(String.class);
+                    String semester = snapshot.child("semi").getValue(String.class);
+                    String program = snapshot.child("program").getValue(String.class);
 
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    String entrySubject = dataSnapshot.child("subjectName").getValue(String.class);
-                    String entryClass = dataSnapshot.child("classname").getValue(String.class);
-
-                    // Store entry with subject as key and class as value
-                    if (entrySubject != null && entryClass != null) {
-                        currentSemesterEntries.put(entrySubject, entryClass);
+                    // Filter by current semester and selected program
+                    if (semester != null && semester.equals(selectedCurrentSemester) && program.equals(selectedProgram)) {
+                        currenttimetableEntries.add(program + " - " + day + " at " + time);
                     }
                 }
 
-                // Check for conflicts in current semester
-                boolean currentSemesterConflict = checkConflicts(selectedSubjects, selectedClasses, currentSemesterEntries);
+                // Retrieve timetable data for failed semester and program
+                List<String> timetableEntries = new ArrayList<>();
+                for (String subject : selectedSubjects) {
+                    timetableRef.orderByChild("subjectName").equalTo(subject)
+                            .addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                        String time = snapshot.child("time").getValue(String.class);
+                                        String day = snapshot.child("days").getValue(String.class);
+                                        String semester = snapshot.child("semi").getValue(String.class);
+                                        String program = snapshot.child("program").getValue(String.class);
 
-                // If there is a conflict in current semester, show message and return
-                if (currentSemesterConflict) {
-                    Toast.makeText(requireContext(), "Timetable conflicts found in current semester", Toast.LENGTH_SHORT).show();
-                    return;
-                }
+                                        // Filter by failed semester and program
+                                        if (semester.equals(selectedFailedSemester) && program.equals(selectedProgram)) {
+                                            timetableEntries.add(subject + " - " + day + " at " + time);
+                                        }
+                                    }
 
-                // Check for conflicts in failed semester if selected
-                if (!failedSemester.equals("None")) {
-                    queryFailedSemester.addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            // Map to store timetable entries for failed semester
-                            Map<String, String> failedSemesterEntries = new HashMap<>();
+                                    // Check for overlaps between current and failed semester timetables
+                                    boolean overlapFound = checkForOverlaps(currenttimetableEntries, timetableEntries);
 
-                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                                String entrySubject = dataSnapshot.child("subjectName").getValue(String.class);
-                                String entryClass = dataSnapshot.child("classname").getValue(String.class);
-
-                                // Store entry with subject as key and class as value
-                                if (entrySubject != null && entryClass != null) {
-                                    failedSemesterEntries.put(entrySubject, entryClass);
+                                    // Display result based on overlap
+                                    if (overlapFound) {
+                                        Toast.makeText(requireContext(), "Overlap found between current and failed semester timetables.", Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        Toast.makeText(requireContext(), "No overlap found between current and failed semester timetables.", Toast.LENGTH_SHORT).show();
+                                        // Generate and download PDF for failed semester timetable view
+                                        generateAndDownloadPDF(selectedSubjects, selectedClasses, selectedFailedSemester);
+                                    }
                                 }
-                            }
 
-                            // Check for conflicts in failed semester
-                            boolean failedSemesterConflict = checkConflicts(selectedSubjects, selectedClasses, failedSemesterEntries);
-
-                            // If there is a conflict in failed semester, show message
-                            if (failedSemesterConflict) {
-                                Toast.makeText(requireContext(), "Timetable conflicts found in failed semester", Toast.LENGTH_SHORT).show();
-                            } else {
-                                // If no conflicts found, proceed to add timetable entries
-                                addTimetableEntries(selectedSubjects, selectedClasses, selectedProgram, currentSemester);
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {
-                            Log.e("Firebase", "Error checking failed semester entries: " + error.getMessage());
-                            Toast.makeText(requireContext(), "Failed to check failed semester entries: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                } else {
-                    // If no failed semester selected, proceed to add timetable entries
-                    addTimetableEntries(selectedSubjects, selectedClasses, selectedProgram, currentSemester);
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError databaseError) {
+                                    // Handle database error
+                                    Log.e(TAG, "Error fetching timetable data", databaseError.toException());
+                                    Toast.makeText(requireContext(), "Error fetching timetable data: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                                }
+                            });
                 }
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e("Firebase", "Error checking current semester entries: " + error.getMessage());
-                Toast.makeText(requireContext(), "Failed to check current semester entries: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                // Handle database error
+                Log.e(TAG, "Error fetching timetable data", databaseError.toException());
+                Toast.makeText(requireContext(), "Error fetching timetable data: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private boolean checkConflicts(List<String> selectedSubjects, List<String> selectedClasses, Map<String, String> semesterEntries) {
-        // Iterate through selected subjects and classes to check for conflicts
-        for (int i = 0; i < selectedSubjects.size(); i++) {
-            String subject = selectedSubjects.get(i);
-            String className = selectedClasses.get(i);
+    private boolean checkForOverlaps(List<String> currenttimetableEntries, List<String> timetableEntries) {
+        // Logic to check for overlaps between current and failed semester timetables
+        // Implement your logic here based on the structure of timetable entries
+        for (String currentEntry : currenttimetableEntries) {
+            String[] currentParts = currentEntry.split(" - ");
+            String currentDayTime = currentParts[1]; // Extract day and time part from current entry
+            String[] currentDayTimeParts = currentDayTime.split(" at ");
+            String currentDays = currentDayTimeParts[0]; // Extract days part
+            String currentTime = currentDayTimeParts[1]; // Extract time part
 
-            // Check if the subject already exists with a different class in the same semester
-            if (semesterEntries.containsKey(subject) && !semesterEntries.get(subject).equals(className)) {
-                return true; // Conflict found
+            for (String failedEntry : timetableEntries) {
+                String[] failedParts = failedEntry.split(" - ");
+                String failedDayTime = failedParts[1]; // Extract day and time part from failed entry
+                String[] failedDayTimeParts = failedDayTime.split(" at ");
+                String failedDays = failedDayTimeParts[0]; // Extract days part
+                String failedTime = failedDayTimeParts[1]; // Extract time part
+
+                // Check for overlapping days and time
+                if (currentDays.equals(failedDays) && currentTime.equals(failedTime)) {
+                    return true; // Overlap found
+                }
             }
         }
-        return false; // No conflicts found
+        return false; // No overlap found
     }
 
-    private void addTimetableEntries(List<String> selectedSubjects, List<String> selectedClasses, String selectedProgram, String currentSemester) {
-        // Show success message with Toast
-        Toast.makeText(requireContext(), "Timetable entries added successfully for " + currentSemester, Toast.LENGTH_SHORT).show();
+    private void generateAndDownloadPDF(List<String> selectedSubjects, List<String> selectedClasses, String selectedFailedSemester) {
+        // Initialize Firebase Realtime Database reference
+        DatabaseReference timetableRef = FirebaseDatabase.getInstance().getReference().child("timetable");
 
-        // Ask user if they want to download as PDF
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        builder.setTitle("Download Timetable as PDF?");
-        builder.setMessage("Do you want to download the timetable as a PDF?");
-        builder.setPositiveButton("Yes", (dialog, which) -> {
-            // Generate and download PDF
-            generateAndDownloadPDF(selectedSubjects, selectedClasses, currentSemester);
-        });
-        builder.setNegativeButton("No", (dialog, which) -> {
-            // Handle if user chooses not to download
-            dialog.dismiss();
-        });
-        builder.show();
-    }
+        // Retrieve timetable data for failed semester and program
+        List<String> timetableEntries = new ArrayList<>();
+        for (String subject : selectedSubjects) {
+            timetableRef.orderByChild("subjectName").equalTo(subject)
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                String time = snapshot.child("time").getValue(String.class);
+                                String day = snapshot.child("days").getValue(String.class);
+                                String semester = snapshot.child("semi").getValue(String.class);
+                                String program = snapshot.child("program").getValue(String.class);
 
-    private void generateAndDownloadPDF(List<String> selectedSubjects, List<String> selectedClasses, String currentSemester) {
-        // Create a new PDF document
-        PdfDocument document = new PdfDocument();
-        PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(300, 600, 1).create();
-        PdfDocument.Page page = document.startPage(pageInfo);
-        Canvas canvas = page.getCanvas();
+                                // Filter by failed semester and program
+                                if (semester.equals(selectedFailedSemester) && program.equals(selectedProgram)) {
+                                    timetableEntries.add(subject + " - " + day + " at " + time);
+                                }
+                            }
 
-        // Set up the text to print
-        StringBuilder timetableDetails = new StringBuilder();
-        timetableDetails.append("Timetable Entries for ").append(currentSemester).append("\n\n");
+                            // Generate PDF document for failed semester timetable
+                            PdfDocument document = new PdfDocument();
+                            int pageNum = 1;
 
-        // Iterate through selected subjects and classes to add details to StringBuilder
-        for (int i = 0; i < selectedSubjects.size(); i++) {
-            String subject = selectedSubjects.get(i);
-            String className = selectedClasses.get(i);
+                            for (String entry : timetableEntries) {
+                                PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(300, 600, pageNum).create();
+                                PdfDocument.Page page = document.startPage(pageInfo);
+                                Canvas canvas = page.getCanvas();
 
-            // Append subject and class details to StringBuilder
-            timetableDetails.append("Subject: ").append(subject).append("\n");
-            timetableDetails.append("Class: ").append(className).append("\n\n");
+                                canvas.drawText(entry, 10, 50, null);
 
-            // Draw text on the PDF canvas
-            canvas.drawText("Subject: " + subject, 10, (i + 1) * 25, null);
-            canvas.drawText("Class: " + className, 10, (i + 2) * 25, null);
+                                document.finishPage(page);
+                                pageNum++;
+                            }
+
+                            // Save PDF to external storage
+                            try {
+                                File filePath = new File(Environment.getExternalStorageDirectory(), "Failed_Timetable.pdf");
+                                document.writeTo(new FileOutputStream(filePath));
+                                document.close();
+
+                                Toast.makeText(requireContext(), "Failed semester timetable downloaded as PDF", Toast.LENGTH_SHORT).show();
+
+                                // Open the PDF file
+                                openPdfFile(filePath);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                Toast.makeText(requireContext(), "Error downloading failed semester timetable as PDF", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+                            // Handle database error
+                            Log.e(TAG, "Error fetching timetable data", databaseError.toException());
+                            Toast.makeText(requireContext(), "Error fetching timetable data: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
         }
-
-        // Finish the page
-        document.finishPage(page);
-
-        // Save the document
-        try {
-            File filePath = new File(Environment.getExternalStorageDirectory(), "Timetable.pdf");
-            document.writeTo(new FileOutputStream(filePath));
-            Toast.makeText(requireContext(), "Timetable downloaded as PDF", Toast.LENGTH_SHORT).show();
-
-            // Optionally, you can open the downloaded PDF file
-            openPDF(filePath.getAbsolutePath());
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            Toast.makeText(requireContext(), "Error downloading timetable as PDF", Toast.LENGTH_SHORT).show();
-        }
-
-        // Close the document
-        document.close();
     }
 
-    private void openPDF(String filePath) {
-        // Open the PDF file using an Intent
-        File file = new File(filePath);
-        Uri pdfUri = FileProvider.getUriForFile(requireContext(), requireContext().getApplicationContext().getPackageName() + ".provider", file);
-
+    private void openPdfFile(File pdfFile) {
+        Uri uri = FileProvider.getUriForFile(requireContext(), requireContext().getPackageName() + ".provider", pdfFile);
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(pdfUri, "application/pdf");
-        intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        intent.setDataAndType(uri, "application/pdf");
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-
         try {
             startActivity(intent);
         } catch (ActivityNotFoundException e) {
