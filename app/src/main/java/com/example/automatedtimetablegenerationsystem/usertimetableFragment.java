@@ -216,7 +216,7 @@ public class usertimetableFragment extends Fragment {
                                     } else {
                                         Toast.makeText(requireContext(), "No overlap found between current and failed semester timetables.", Toast.LENGTH_SHORT).show();
                                         // Generate and download PDF for failed semester timetable view
-                                        generateAndDownloadPDF(selectedSubjects, selectedClasses, selectedFailedSemester);
+                                      // generateAndDownloadPDF(selectedSubjects, selectedClasses, selectedFailedSemester);
                                     }
                                 }
 
@@ -265,11 +265,8 @@ public class usertimetableFragment extends Fragment {
         return false; // No overlap found
     }
 
-    private void generateAndDownloadPDF(List<String> selectedSubjects, List<String> selectedClasses, String selectedFailedSemester) {
-        // Initialize Firebase Realtime Database reference
-        DatabaseReference timetableRef = FirebaseDatabase.getInstance().getReference().child("timetable");
-
-        // Retrieve timetable data for failed semester and program
+    private void generateAndDownloadPDF(List<String> selectedSubjects, String selectedProgram, String selectedFailedSemester) {
+        // Retrieve timetable entries for failed semester and program
         List<String> timetableEntries = new ArrayList<>();
         for (String subject : selectedSubjects) {
             timetableRef.orderByChild("subjectName").equalTo(subject)
@@ -288,35 +285,11 @@ public class usertimetableFragment extends Fragment {
                                 }
                             }
 
-                            // Generate PDF document for failed semester timetable
-                            PdfDocument document = new PdfDocument();
-                            int pageNum = 1;
+                            // Generate PDF document
+                            PdfDocument document = generatePDF(timetableEntries);
 
-                            for (String entry : timetableEntries) {
-                                PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(300, 600, pageNum).create();
-                                PdfDocument.Page page = document.startPage(pageInfo);
-                                Canvas canvas = page.getCanvas();
-
-                                canvas.drawText(entry, 10, 50, null);
-
-                                document.finishPage(page);
-                                pageNum++;
-                            }
-
-                            // Save PDF to external storage
-                            try {
-                                File filePath = new File(Environment.getExternalStorageDirectory(), "Failed_Timetable.pdf");
-                                document.writeTo(new FileOutputStream(filePath));
-                                document.close();
-
-                                Toast.makeText(requireContext(), "Failed semester timetable downloaded as PDF", Toast.LENGTH_SHORT).show();
-
-                                // Open the PDF file
-                                openPdfFile(filePath);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                                Toast.makeText(requireContext(), "Error downloading failed semester timetable as PDF", Toast.LENGTH_SHORT).show();
-                            }
+                            // Show dialog to ask user to download
+                            showDownloadDialog(document);
                         }
 
                         @Override
@@ -327,6 +300,50 @@ public class usertimetableFragment extends Fragment {
                         }
                     });
         }
+    }
+    private PdfDocument generatePDF(List<String> timetableEntries) {
+        PdfDocument document = new PdfDocument();
+        int pageNum = 1;
+
+        for (String entry : timetableEntries) {
+            PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(300, 600, pageNum).create();
+            PdfDocument.Page page = document.startPage(pageInfo);
+            Canvas canvas = page.getCanvas();
+
+            canvas.drawText(entry, 10, 50, null);
+
+            document.finishPage(page);
+            pageNum++;
+        }
+
+        return document;
+    }
+
+    private void showDownloadDialog(PdfDocument document) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        builder.setTitle("Download PDF");
+        builder.setMessage("Do you want to download the timetable as PDF?");
+        builder.setPositiveButton("Download", (dialog, which) -> {
+            // Save PDF to external storage
+            try {
+                File filePath = new File(Environment.getExternalStorageDirectory(), "Failed_Timetable.pdf");
+                document.writeTo(new FileOutputStream(filePath));
+                document.close();
+
+                Toast.makeText(requireContext(), "Failed semester timetable downloaded as PDF", Toast.LENGTH_SHORT).show();
+
+                // Open the PDF file
+                openPdfFile(filePath);
+            } catch (IOException e) {
+                e.printStackTrace();
+                Toast.makeText(requireContext(), "Error downloading failed semester timetable as PDF", Toast.LENGTH_SHORT).show();
+            }
+        });
+        builder.setNegativeButton("Cancel", (dialog, which) -> {
+            dialog.dismiss();
+        });
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
     }
 
     private void openPdfFile(File pdfFile) {
