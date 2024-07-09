@@ -200,10 +200,10 @@ public class usertimetableFragment extends Fragment {
                                         String day = snapshot.child("days").getValue(String.class);
                                         String semester = snapshot.child("semi").getValue(String.class);
                                         String program = snapshot.child("program").getValue(String.class);
-
+                                        String className = snapshot.child("classname").getValue(String.class);
                                         // Filter by failed semester and program
-                                        if (semester.equals(selectedFailedSemester) && program.equals(selectedProgram)) {
-                                            timetableEntries.add(subject + " - " + day + " at " + time);
+                                        if (semester.equals(selectedFailedSemester) && program.equals(selectedProgram) && selectedClasses.contains(className)) {
+                                            timetableEntries.add(subject + " - " + day + " at " + time + " (" + className + ")");
                                         }
                                     }
 
@@ -216,7 +216,9 @@ public class usertimetableFragment extends Fragment {
                                     } else {
                                         Toast.makeText(requireContext(), "No overlap found between current and failed semester timetables.", Toast.LENGTH_SHORT).show();
                                         // Generate and download PDF for failed semester timetable view
-                                      // generateAndDownloadPDF(selectedSubjects, selectedClasses, selectedFailedSemester);
+                                        PdfDocument document = generatePDF(timetableEntries);
+                                        showDownloadDialog(document);
+                                      // generateAndDownloadPDF(selectedSubjects, selectedProgram,selectedClasses,selectedFailedSemester);
                                     }
                                 }
 
@@ -265,7 +267,7 @@ public class usertimetableFragment extends Fragment {
         return false; // No overlap found
     }
 
-    private void generateAndDownloadPDF(List<String> selectedSubjects, String selectedProgram, String selectedFailedSemester) {
+    private void generateAndDownloadPDF(List<String> selectedSubjects,String selectedProgram, List<String> selectedClasses, String selectedFailedSemester) {
         // Retrieve timetable entries for failed semester and program
         List<String> timetableEntries = new ArrayList<>();
         for (String subject : selectedSubjects) {
@@ -358,4 +360,6 @@ public class usertimetableFragment extends Fragment {
             Toast.makeText(requireContext(), "No application available to view PDF", Toast.LENGTH_SHORT).show();
         }
     }
+
+
 }
