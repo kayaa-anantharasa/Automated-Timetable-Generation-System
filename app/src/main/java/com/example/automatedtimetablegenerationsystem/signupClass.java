@@ -6,6 +6,13 @@ public class signupClass {
     public signupClass() {
     }
 
+
+    public signupClass(String name, String email, String password, String matrixNumber) {
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.matrixNumber = matrixNumber;
+    }
     public String getName() {
         return name;
     }
@@ -35,13 +42,6 @@ public class signupClass {
     }
 
     public void setMatrixNumber(String matrixNumber) {
-        this.matrixNumber = matrixNumber;
-    }
-
-    public signupClass(String name, String email, String password, String matrixNumber) {
-        this.name = name;
-        this.email = email;
-        this.password = password;
         this.matrixNumber = matrixNumber;
     }
 

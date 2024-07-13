@@ -35,17 +35,22 @@ public class adminUserFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_admin_user, container, false);
 
+        // Initialize RecyclerView
         recyclerView = view.findViewById(R.id.dataviewuser);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
+        // Initialize userEntries
         userEntries = new ArrayList<>();
         databaseRef = FirebaseDatabase.getInstance().getReference("users");
 
+        // Initialize adapter
         adapter = new UserAdapter(getContext(), userEntries);
         recyclerView.setAdapter(adapter);
 
+        // Fetch data from Firebase
         fetchDataFromFirebase();
 
+        // Initialize SearchView
         searchView = view.findViewById(R.id.searchuserView);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -55,7 +60,7 @@ public class adminUserFragment extends Fragment {
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                adapter.filterList(newText);
+                adapter.filterList(newText); // Call filter method in adapter
                 return true;
             }
         });
@@ -67,14 +72,14 @@ public class adminUserFragment extends Fragment {
         databaseRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                userEntries.clear();
+                userEntries.clear(); // Clear existing entries
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     signupClass user = snapshot.getValue(signupClass.class);
                     if (user != null) {
                         userEntries.add(user);
                     }
                 }
-                adapter.updateData(userEntries);
+                adapter.updateData(userEntries); // Update adapter data
                 Log.d("FirebaseData", "Data loaded successfully.");
             }
 

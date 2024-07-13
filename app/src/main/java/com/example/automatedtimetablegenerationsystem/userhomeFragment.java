@@ -35,8 +35,9 @@ import java.util.Map;
 public class userhomeFragment extends Fragment {
     private Spinner spinnerSemester;
     private Spinner spinnerProgram;
-    private String[] semesters = {"semi 01", "semi 02"};
-    private String[] programs = {"CST", "IIT", "EAG"};
+    private Spinner spinnerclass;
+    private String[] semesters = {"S1", "S2", "S3", "S4", "S5"};
+
     private Button showTimetableButton;
     private ProgressBar progressBar;
     private DatabaseReference timetableRef;
@@ -46,10 +47,14 @@ public class userhomeFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_userhome, container, false);
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+         DatabaseReference  classesRef = database.getReference("classes");
+         DatabaseReference programRef = database.getReference("program");
 
         // Initialize Spinners
         spinnerSemester = view.findViewById(R.id.semesters);
         spinnerProgram = view.findViewById(R.id.program);
+        spinnerclass = view.findViewById(R.id.classname);
         progressBar = view.findViewById(R.id.progressBar);
 
         // Initialize Spinners with adapters
@@ -57,9 +62,43 @@ public class userhomeFragment extends Fragment {
         semesterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerSemester.setAdapter(semesterAdapter);
 
-        ArrayAdapter<String> programAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, programs);
-        programAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerProgram.setAdapter(programAdapter);
+        classesRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                List<String> classList = new ArrayList<>();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    String className = snapshot.child("className").getValue(String.class);
+                    classList.add(className);
+                }
+                ArrayAdapter<String> classAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, classList);
+                classAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                spinnerclass.setAdapter(classAdapter);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(requireContext(), "Failed to load classes", Toast.LENGTH_SHORT).show();
+            }
+        });
+        // Setup ValueEventListener for program
+        programRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                List<String> programList = new ArrayList<>();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    String programName = snapshot.child("name").getValue(String.class);
+                    programList.add(programName);
+                }
+                ArrayAdapter<String> programAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, programList);
+                programAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                spinnerProgram.setAdapter(programAdapter);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(requireContext(), "Failed to load programs", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         // Initialize Firebase
         timetableRef = FirebaseDatabase.getInstance().getReference().child("timetable");
@@ -71,14 +110,15 @@ public class userhomeFragment extends Fragment {
             public void onClick(View v) {
                 String selectedSemester = spinnerSemester.getSelectedItem().toString();
                 String selectedProgram = spinnerProgram.getSelectedItem().toString();
-                fetchTimetable(selectedSemester, selectedProgram);
+                String selectedClass= spinnerclass.getSelectedItem().toString();
+                fetchTimetable(selectedSemester, selectedProgram,selectedClass);
             }
         });
 
         return view;
     }
 
-    private void fetchTimetable(String semester, String program) {
+    private void fetchTimetable(String semester, String program,String classname) {
         progressBar.setVisibility(View.VISIBLE);
         timetableRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -93,10 +133,10 @@ public class userhomeFragment extends Fragment {
                         // Get the timetable entry data
                         String entrySemester = timetableSnapshot.child("semi").getValue(String.class);
                         String entryProgram = timetableSnapshot.child("program").getValue(String.class);
-
+                        String entryclass = timetableSnapshot.child("classname").getValue(String.class);
                         // Check if the semester and program match the selected ones
-                        if (entrySemester != null && entryProgram != null &&
-                                entrySemester.equals(semester) && entryProgram.equals(program)) {
+                        if (entrySemester != null && entryProgram != null && entryclass != null &&
+                                entrySemester.equals(semester) && entryProgram.equals(program) && entryclass.equals(classname)) {
                             // Convert snapshot to TimetableEntry object
                             TimetableEntry timetableEntry = timetableSnapshot.getValue(TimetableEntry.class);
                             if (timetableEntry != null) {

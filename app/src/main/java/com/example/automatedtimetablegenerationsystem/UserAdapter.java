@@ -63,7 +63,9 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
     public void updateData(List<signupClass> newEntries) {
         userEntries.clear();
         userEntries.addAll(newEntries);
-        filterList(""); // Reset filter when data changes
+        filteredList.clear();
+        filteredList.addAll(newEntries); // Update filtered list
+        notifyDataSetChanged();
     }
 
     public void filterList(String query) {
