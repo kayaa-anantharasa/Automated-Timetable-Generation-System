@@ -18,11 +18,13 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DatabaseReference;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.ViewHolder> {
 
     private List<Timetable> timetableEntries;
+    private List<Timetable> filteredList;
     private Context context;
     private DatabaseReference timetableRef;
 
@@ -30,13 +32,13 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
     public TimetableAdapter(Context context, List<Timetable> timetableEntries, DatabaseReference timetableRef) {
         this.context = context;
         this.timetableEntries = timetableEntries;
+        this.filteredList = new ArrayList<>(timetableEntries);
         this.timetableRef = timetableRef; // Initialize with Firebase database reference
     }
 
     // Create ViewHolder to hold reference to each view item
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView daysTextView, lecturerTextView, subjectCodeTextView, subjectNameTextView, timeTextView, semiTextView, programTextView, classTextView;
-        Button deleteButton, updateButton;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -48,8 +50,17 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
             semiTextView = itemView.findViewById(R.id.semi);
             programTextView = itemView.findViewById(R.id.programname);
             classTextView = itemView.findViewById(R.id.classname);
-            deleteButton = itemView.findViewById(R.id.delete);
-            updateButton = itemView.findViewById(R.id.update);
+        }
+
+        public void bind(Timetable timetable) {
+            daysTextView.setText("Days: " + timetable.getDays());
+            lecturerTextView.setText("Lecturer: " + timetable.getLecturer());
+            subjectCodeTextView.setText("Subject Code: " + timetable.getSubjectCode());
+            subjectNameTextView.setText("Subject Name: " + timetable.getSubjectName());
+            timeTextView.setText("Time: " + timetable.getTime());
+            semiTextView.setText("Semester: " + timetable.getSemi());
+            programTextView.setText("Program: " + timetable.getProgram());
+            classTextView.setText("Class: " + timetable.getClassname());
         }
     }
 
@@ -64,36 +75,22 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
     // Bind data to ViewHolder
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Timetable entry = timetableEntries.get(position);
-
-        holder.daysTextView.setText("Days: " + entry.getDays());
-        holder.lecturerTextView.setText("Lecturer: " + entry.getLecturer());
-        holder.subjectCodeTextView.setText("Subject Code: " + entry.getSubjectCode());
-        holder.subjectNameTextView.setText("Subject Name: " + entry.getSubjectName());
-        holder.timeTextView.setText("Time: " + entry.getTime());
-        holder.semiTextView.setText("Semester: " + entry.getSemi());
-        holder.programTextView.setText("Program: " + entry.getProgram());
-        holder.classTextView.setText("Class: " + entry.getClassname());
+        Timetable timetable = filteredList.get(position);
+        holder.bind(timetable);
 
         // Implement delete button functionality
-        holder.deleteButton.setOnClickListener(new View.OnClickListener() {
+        holder.itemView.findViewById(R.id.delete).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int adapterPosition = holder.getAdapterPosition();
-                if (adapterPosition != RecyclerView.NO_POSITION) {
-                    deleteTimetableEntry(adapterPosition);
-                }
+                deleteTimetableEntry(position);
             }
         });
 
         // Implement update button functionality
-        holder.updateButton.setOnClickListener(new View.OnClickListener() {
+        holder.itemView.findViewById(R.id.update).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int adapterPosition = holder.getAdapterPosition();
-                if (adapterPosition != RecyclerView.NO_POSITION) {
-                    updateTimetableEntry(adapterPosition);
-                }
+                updateTimetableEntry(position);
             }
         });
     }
@@ -101,12 +98,12 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
     // Return number of items in the data set
     @Override
     public int getItemCount() {
-        return timetableEntries.size();
+        return filteredList.size();
     }
 
     // Method to delete timetable entry from Firebase and update RecyclerView
     private void deleteTimetableEntry(int position) {
-        Timetable entryToDelete = timetableEntries.get(position);
+        Timetable entryToDelete = filteredList.get(position);
 
         // Remove from Firebase database
         String key = entryToDelete.getKey();
@@ -115,9 +112,9 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
                     @Override
                     public void onSuccess(Void aVoid) {
                         // Remove from local list and notify adapter
-                        timetableEntries.remove(position);
-                        notifyItemRemoved(position);
-                        notifyItemRangeChanged(position, timetableEntries.size());
+                        timetableEntries.remove(entryToDelete);
+                        filteredList.remove(entryToDelete);
+                        notifyDataSetChanged();
                         Toast.makeText(context, "Timetable entry deleted successfully", Toast.LENGTH_SHORT).show();
                     }
                 })
@@ -131,7 +128,7 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
 
     // Method to update timetable entry
     private void updateTimetableEntry(int position) {
-        Timetable entryToUpdate = timetableEntries.get(position);
+        Timetable entryToUpdate = filteredList.get(position);
 
         // Launch a dialog with current details pre-filled
         View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_edit_timetable, null);
@@ -176,7 +173,9 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
                         .addOnSuccessListener(new OnSuccessListener<Void>() {
                             @Override
                             public void onSuccess(Void aVoid) {
-                                notifyItemChanged(position);
+                                // Update local list and notify adapter
+                                timetableEntries.set(timetableEntries.indexOf(entryToUpdate), entryToUpdate);
+                                notifyDataSetChanged();
                                 Toast.makeText(context, "Timetable entry updated successfully", Toast.LENGTH_SHORT).show();
                             }
                         })
@@ -202,7 +201,32 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
     // Method to update adapter data
     public void updateData(List<Timetable> newTimetableEntries) {
         timetableEntries.clear();
+        filteredList.clear();
         timetableEntries.addAll(newTimetableEntries);
+        filteredList.addAll(newTimetableEntries);
+        notifyDataSetChanged();
+    }
+
+    // Method to filter data based on query
+    public void filterList(String query) {
+        filteredList.clear();
+        if (query.isEmpty()) {
+            filteredList.addAll(timetableEntries);
+        } else {
+            query = query.toLowerCase().trim();
+            for (Timetable timetable : timetableEntries) {
+                if (timetable.getSubjectName().toLowerCase().contains(query)
+                        || timetable.getSubjectCode().toLowerCase().contains(query)
+                        || timetable.getLecturer().toLowerCase().contains(query)
+                        || timetable.getDays().toLowerCase().contains(query)
+                        || timetable.getTime().toLowerCase().contains(query)
+                        || timetable.getSemi().toLowerCase().contains(query)
+                        || timetable.getProgram().toLowerCase().contains(query)
+                        || timetable.getClassname().toLowerCase().contains(query)) {
+                    filteredList.add(timetable);
+                }
+            }
+        }
         notifyDataSetChanged();
     }
 }

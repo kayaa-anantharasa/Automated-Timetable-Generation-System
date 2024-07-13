@@ -5,9 +5,11 @@ import static android.content.ContentValues.TAG;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Canvas;
 import android.graphics.pdf.PdfDocument;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -37,6 +39,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import android.Manifest;
 
 public class usertimetableFragment extends Fragment {
 
@@ -328,7 +331,13 @@ public class usertimetableFragment extends Fragment {
         builder.setPositiveButton("Download", (dialog, which) -> {
             // Save PDF to external storage
             try {
-                File filePath = new File(Environment.getExternalStorageDirectory(), "Failed_Timetable.pdf");
+                File filePath;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    filePath = new File(requireContext().getExternalFilesDir(null), "Failed_Timetable.pdf");
+                } else {
+                    filePath = new File(Environment.getExternalStorageDirectory(), "Failed_Timetable.pdf");
+                }
+
                 document.writeTo(new FileOutputStream(filePath));
                 document.close();
 
@@ -341,13 +350,10 @@ public class usertimetableFragment extends Fragment {
                 Toast.makeText(requireContext(), "Error downloading failed semester timetable as PDF", Toast.LENGTH_SHORT).show();
             }
         });
-        builder.setNegativeButton("Cancel", (dialog, which) -> {
-            dialog.dismiss();
-        });
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
         AlertDialog alertDialog = builder.create();
         alertDialog.show();
     }
-
     private void openPdfFile(File pdfFile) {
         Uri uri = FileProvider.getUriForFile(requireContext(), requireContext().getPackageName() + ".provider", pdfFile);
         Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -361,5 +367,30 @@ public class usertimetableFragment extends Fragment {
         }
     }
 
+    private static final int PERMISSION_REQUEST_CODE = 100;
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (requireContext().checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted
+            } else {
+                Toast.makeText(requireContext(), "Permission denied. Unable to download PDF.", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
 
 }

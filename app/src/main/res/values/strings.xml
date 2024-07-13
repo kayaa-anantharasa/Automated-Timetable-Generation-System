@@ -15,6 +15,7 @@
 
     <string name="spinner_prompt">Select time</string>
     <string name="spinner_prompt1">Select Program</string>
+    <string name="spinner_prompt4">Select prerequisite</string>
     <string name="spinner_subject">Select Repeat No Of Subjects</string>
     <string name="spinner_semi">Select Current Semester </string>
     <string name="spinner_program">Select Program</string>

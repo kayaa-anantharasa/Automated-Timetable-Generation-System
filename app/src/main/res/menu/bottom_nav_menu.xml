@@ -16,9 +16,12 @@
         android:title="User"
         android:icon="@drawable/baseline_supervised_user_circle_24"
        />
+    <item android:id="@+id/add"
+        android:title="Add"
+        android:icon="@drawable/baseline_add_box_24"
+        />
     <item android:id="@+id/logout"
         android:title="Logout"
-        android:icon="@drawable/baseline_logout_24"
-        />
+        android:icon="@drawable/baseline_logout_24" />
 
 </menu>

@@ -33,6 +33,8 @@ public class admin_home extends AppCompatActivity {
                 replaceFragment(new adminTimetableFragment());
             } else if (item.getItemId() == R.id.user) {
                 replaceFragment(new adminUserFragment());
+            }else if (item.getItemId() == R.id.add) {
+                replaceFragment(new adminAddFragment());
             }
             else if (item.getItemId() == R.id.logout) {
                 logoutUser();

@@ -9,8 +9,10 @@ public class Timetable {
     private String semi;
     private String program;
     private String classname;
+    private String classroom;
+    private String Prerequisite;
     private String key;
-    public Timetable(String subjectName, String subjectCode, String lecturer, String days, String time, String semi, String program, String classname) {
+    public Timetable(String subjectName, String subjectCode, String lecturer, String days, String time, String semi, String program, String classname,String classroom,String Prerequisite) {
         this.subjectName = subjectName;
         this.subjectCode = subjectCode;
         this.lecturer = lecturer;
@@ -19,7 +21,27 @@ public class Timetable {
         this.semi = semi;
         this.program = program;
         this.classname = classname;
+        this.classroom = classroom;
+        this.Prerequisite = Prerequisite;
+
     }
+
+    public String getClassroom() {
+        return classroom;
+    }
+
+    public void setClassroom(String classroom) {
+        this.classroom = classroom;
+    }
+
+    public String getPrerequisite() {
+        return Prerequisite;
+    }
+
+    public void setPrerequisite(String prerequisite) {
+        Prerequisite = prerequisite;
+    }
+
     public String getKey() {
         return key;
     }

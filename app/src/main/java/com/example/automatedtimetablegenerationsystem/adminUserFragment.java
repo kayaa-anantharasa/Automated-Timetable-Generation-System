@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.SearchView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -25,6 +26,7 @@ public class adminUserFragment extends Fragment {
     private RecyclerView recyclerView;
     private UserAdapter adapter;
     private List<signupClass> userEntries;
+    private SearchView searchView;
 
     @Nullable
     @Override
@@ -45,12 +47,27 @@ public class adminUserFragment extends Fragment {
         // Fetch data from Firebase Realtime Database
         fetchDataFromFirebase();
 
+        // Initialize SearchView
+        searchView = view.findViewById(R.id.searchuserView);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                adapter.filterList(newText); // Filter adapter's data based on user input
+                return true;
+            }
+        });
+
         return view;
     }
 
     // Method to fetch data from Firebase Realtime Database
     private void fetchDataFromFirebase() {
-        DatabaseReference databaseRef = FirebaseDatabase.getInstance().getReference("users"); // Replace with your database reference
+        DatabaseReference databaseRef = FirebaseDatabase.getInstance().getReference("users");
         databaseRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -58,9 +75,8 @@ public class adminUserFragment extends Fragment {
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     signupClass user = snapshot.getValue(signupClass.class);
                     userEntries.add(user);
-
                 }
-                adapter.notifyDataSetChanged(); // Notify adapter of data change
+                adapter.updateData(userEntries); // Update adapter's data and notify changes
             }
 
             @Override

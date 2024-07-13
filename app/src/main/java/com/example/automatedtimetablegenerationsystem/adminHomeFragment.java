@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.SearchView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -26,6 +27,7 @@ public class adminHomeFragment extends Fragment {
     private TimetableAdapter adapter;
     private List<Timetable> timetableEntries;
     private DatabaseReference databaseRef;
+    private SearchView searchView;
 
     @Nullable
     @Override
@@ -49,6 +51,21 @@ public class adminHomeFragment extends Fragment {
         // Fetch data from Firebase Realtime Database
         fetchDataFromFirebase();
 
+        // Initialize SearchView
+        searchView = view.findViewById(R.id.searchView);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                adapter.filterList(newText); // Call filter method in adapter
+                return true;
+            }
+        });
+
         return view;
     }
 
@@ -65,7 +82,7 @@ public class adminHomeFragment extends Fragment {
                         timetableEntries.add(timetable);
                     }
                 }
-                adapter.notifyDataSetChanged(); // Notify adapter of data change
+                adapter.updateData(timetableEntries); // Update adapter data
             }
 
             @Override

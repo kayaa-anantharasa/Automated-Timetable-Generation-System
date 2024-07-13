@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/simplebutton"
+    tools:context=".adminAddFragment">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/size"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/b6">
+
+        <Button
+            android:id="@+id/classButton"
+            android:layout_width="132dp"
+            android:layout_height="70dp"
+            android:layout_marginStart="232dp"
+            android:layout_marginTop="209dp"
+            android:layout_marginEnd="47dp"
+            android:layout_marginBottom="452dp"
+            android:onClick="addClassClicked"
+            android:text="Class"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/subjectButton"
+            android:layout_width="132dp"
+            android:layout_height="70dp"
+            android:layout_marginStart="232dp"
+            android:layout_marginTop="76dp"
+            android:layout_marginEnd="47dp"
+            android:layout_marginBottom="585dp"
+            android:onClick="addSubjectClicked"
+            android:text="Subject"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/classroomButton"
+            android:layout_width="132dp"
+            android:layout_height="70dp"
+            android:layout_marginStart="41dp"
+            android:layout_marginTop="84dp"
+            android:layout_marginEnd="238dp"
+            android:layout_marginBottom="577dp"
+            android:onClick="addClassroomClicked"
+            android:text="Classroom"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/addPrerequisite"
+            android:layout_width="132dp"
+            android:layout_height="70dp"
+            android:layout_marginStart="41dp"
+            android:layout_marginTop="209dp"
+            android:layout_marginEnd="238dp"
+            android:layout_marginBottom="452dp"
+            android:onClick="addPrerequisiteClicked"
+            android:text="Prerequisite"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/addProgram"
+            android:layout_width="132dp"
+            android:layout_height="70dp"
+            android:layout_marginStart="41dp"
+            android:layout_marginTop="330dp"
+            android:layout_marginEnd="238dp"
+            android:layout_marginBottom="331dp"
+            android:onClick="addProgramClicked"
+            android:text="Program"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</FrameLayout>
