@@ -12,7 +12,7 @@
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="376dp"
+        android:layout_marginTop="336dp"
         android:text="Matrix Number"
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -120,5 +120,20 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/signuptxt"
         app:layout_constraintVertical_bias="0.0" />
+
+    <TextView
+        android:id="@+id/forgot_password"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="96dp"
+        android:clickable="true"
+        android:onClick="onClickForgotPassword"
+        android:text="Forgot Password?"
+        android:textColor="@color/blue"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.561"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/loginpassword" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -32,8 +32,6 @@ public class userMain extends AppCompatActivity {
                 replaceFragment(new userhomeFragment());
             } else if (item.getItemId() == R.id.usertimetable) {
                 replaceFragment(new usertimetableFragment());
-            } else if (item.getItemId() == R.id.useredit) {
-                replaceFragment(new usereditFragment());
             }  else if (item.getItemId() == R.id.userlogout) {
                 logoutUser();
             }

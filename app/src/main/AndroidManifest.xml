@@ -46,6 +46,7 @@
         <activity
             android:name=".signup"
             android:exported="false" />
+        <activity android:name=".VerifyActivity" />
         <activity
             android:name=".MainActivity"
             android:exported="true">

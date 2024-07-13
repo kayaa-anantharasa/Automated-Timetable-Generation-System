@@ -28,6 +28,8 @@ public class login extends AppCompatActivity {
     Button login_btn;
     TextView signup_txt;
     TextView adminlogin_txt;
+    TextView forgot_password_txt;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +41,7 @@ public class login extends AppCompatActivity {
         login_matrix = findViewById(R.id.loginmatrix);
         login_password = findViewById(R.id.loginpassword);
         login_btn = findViewById(R.id.loginbtn);
+        forgot_password_txt = findViewById(R.id.forgot_password);
 
         signup_txt.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -55,6 +58,14 @@ public class login extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+        forgot_password_txt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(login.this, VerifyActivity.class);
+                startActivity(intent);
+            }
+        });
+
 
         login_btn.setOnClickListener(new View.OnClickListener() {
             @Override
