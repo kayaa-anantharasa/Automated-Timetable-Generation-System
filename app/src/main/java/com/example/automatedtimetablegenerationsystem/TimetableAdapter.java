@@ -5,7 +5,6 @@ import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -17,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,14 +26,12 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
     private List<Timetable> timetableEntries;
     private List<Timetable> filteredList;
     private Context context;
-    private DatabaseReference timetableRef;
 
     // Constructor to initialize the adapter with data and context
-    public TimetableAdapter(Context context, List<Timetable> timetableEntries, DatabaseReference timetableRef) {
+    public TimetableAdapter(Context context, List<Timetable> timetableEntries) {
         this.context = context;
         this.timetableEntries = timetableEntries;
         this.filteredList = new ArrayList<>(timetableEntries);
-        this.timetableRef = timetableRef; // Initialize with Firebase database reference
     }
 
     // Create ViewHolder to hold reference to each view item
@@ -104,6 +102,7 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
     // Method to delete timetable entry from Firebase and update RecyclerView
     private void deleteTimetableEntry(int position) {
         Timetable entryToDelete = filteredList.get(position);
+        DatabaseReference timetableRef = FirebaseDatabase.getInstance().getReference("timetable");
 
         // Remove from Firebase database
         String key = entryToDelete.getKey();
@@ -144,7 +143,7 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
         EditText editProgram = dialogView.findViewById(R.id.editProgram);
         EditText editClass = dialogView.findViewById(R.id.editClass);
 
-        // Pre-fill with current details
+        // Pre-fill the fields with current details
         editDays.setText(entryToUpdate.getDays());
         editLecturer.setText(entryToUpdate.getLecturer());
         editSubjectCode.setText(entryToUpdate.getSubjectCode());
@@ -154,76 +153,78 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
         editProgram.setText(entryToUpdate.getProgram());
         editClass.setText(entryToUpdate.getClassname());
 
-        builder.setPositiveButton("Update", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                // Update the entry with new details
-                entryToUpdate.setDays(editDays.getText().toString());
-                entryToUpdate.setLecturer(editLecturer.getText().toString());
-                entryToUpdate.setSubjectCode(editSubjectCode.getText().toString());
-                entryToUpdate.setSubjectName(editSubjectName.getText().toString());
-                entryToUpdate.setTime(editTime.getText().toString());
-                entryToUpdate.setSemi(editSemi.getText().toString());
-                entryToUpdate.setProgram(editProgram.getText().toString());
-                entryToUpdate.setClassname(editClass.getText().toString());
+        builder.setTitle("Edit Timetable Entry")
+                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Get updated values from input fields
+                        String updatedDays = editDays.getText().toString();
+                        String updatedLecturer = editLecturer.getText().toString();
+                        String updatedSubjectCode = editSubjectCode.getText().toString();
+                        String updatedSubjectName = editSubjectName.getText().toString();
+                        String updatedTime = editTime.getText().toString();
+                        String updatedSemi = editSemi.getText().toString();
+                        String updatedProgram = editProgram.getText().toString();
+                        String updatedClass = editClass.getText().toString();
 
-                // Update Firebase database
-                String key = entryToUpdate.getKey();
-                timetableRef.child(key).setValue(entryToUpdate)
-                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void aVoid) {
-                                // Update local list and notify adapter
-                                timetableEntries.set(timetableEntries.indexOf(entryToUpdate), entryToUpdate);
-                                notifyDataSetChanged();
-                                Toast.makeText(context, "Timetable entry updated successfully", Toast.LENGTH_SHORT).show();
-                            }
-                        })
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Toast.makeText(context, "Failed to update timetable entry: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                            }
-                        });
-            }
-        });
+                        // Update entry with new values
+                        entryToUpdate.setDays(updatedDays);
+                        entryToUpdate.setLecturer(updatedLecturer);
+                        entryToUpdate.setSubjectCode(updatedSubjectCode);
+                        entryToUpdate.setSubjectName(updatedSubjectName);
+                        entryToUpdate.setTime(updatedTime);
+                        entryToUpdate.setSemi(updatedSemi);
+                        entryToUpdate.setProgram(updatedProgram);
+                        entryToUpdate.setClassname(updatedClass);
 
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
+                        // Update entry in Firebase
+                        DatabaseReference timetableRef = FirebaseDatabase.getInstance().getReference("timetable");
+                        String key = entryToUpdate.getKey();
+                        timetableRef.child(key).setValue(entryToUpdate)
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        // Update local list and notify adapter
+                                        notifyDataSetChanged();
+                                        Toast.makeText(context, "Timetable entry updated successfully", Toast.LENGTH_SHORT).show();
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Toast.makeText(context, "Failed to update timetable entry: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                    }
+                })
+                .setNegativeButton("Cancel", null);
 
         builder.create().show();
     }
 
-    // Method to update adapter data
+    // Method to update data in adapter
     public void updateData(List<Timetable> newTimetableEntries) {
-        timetableEntries.clear();
-        filteredList.clear();
-        timetableEntries.addAll(newTimetableEntries);
-        filteredList.addAll(newTimetableEntries);
+        this.timetableEntries = newTimetableEntries;
+        this.filteredList = new ArrayList<>(newTimetableEntries);
         notifyDataSetChanged();
     }
 
-    // Method to filter data based on query
+    // Method to filter list based on query
     public void filterList(String query) {
         filteredList.clear();
         if (query.isEmpty()) {
             filteredList.addAll(timetableEntries);
         } else {
-            query = query.toLowerCase().trim();
-            for (Timetable timetable : timetableEntries) {
-                if (timetable.getSubjectName().toLowerCase().contains(query)
-                        || timetable.getSubjectCode().toLowerCase().contains(query)
-                        || timetable.getLecturer().toLowerCase().contains(query)
-                        || timetable.getDays().toLowerCase().contains(query)
-                        || timetable.getTime().toLowerCase().contains(query)
-                        || timetable.getSemi().toLowerCase().contains(query)
-                        || timetable.getProgram().toLowerCase().contains(query)
-                        || timetable.getClassname().toLowerCase().contains(query)) {
-                    filteredList.add(timetable);
+            for (Timetable entry : timetableEntries) {
+                if (entry.getSubjectName().toLowerCase().contains(query.toLowerCase()) ||
+                        entry.getSubjectCode().toLowerCase().contains(query.toLowerCase()) ||
+                        entry.getLecturer().toLowerCase().contains(query.toLowerCase()) ||
+                        entry.getDays().toLowerCase().contains(query.toLowerCase()) ||
+                        entry.getTime().toLowerCase().contains(query.toLowerCase()) ||
+                        entry.getProgram().toLowerCase().contains(query.toLowerCase()) ||
+                        entry.getSemi().toLowerCase().contains(query.toLowerCase()) ||
+                        entry.getClassname().toLowerCase().contains(query.toLowerCase())) {
+                    filteredList.add(entry);
                 }
             }
         }

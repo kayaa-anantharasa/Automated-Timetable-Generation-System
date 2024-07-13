@@ -11,20 +11,20 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
+
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
 
     private List<signupClass> userEntries;
-    private List<signupClass> filteredList; // New list to hold filtered data
+    private List<signupClass> filteredList;
     private Context context;
 
-    // Constructor to initialize the adapter with data and context
+    // Constructor
     public UserAdapter(Context context, List<signupClass> userEntries) {
         this.context = context;
         this.userEntries = userEntries;
-        this.filteredList = new ArrayList<>(userEntries); // Initialize filtered list with all data
+        this.filteredList = new ArrayList<>(userEntries);
     }
 
-    // Create ViewHolder to hold reference to each view item
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView matrixNumberTextView, nameTextView, emailTextView;
 
@@ -42,7 +42,6 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         }
     }
 
-    // Inflate item layout and create ViewHolder
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -50,27 +49,23 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         return new ViewHolder(view);
     }
 
-    // Bind data to ViewHolder
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         signupClass user = filteredList.get(position);
         holder.bind(user);
     }
 
-    // Return number of items in the data set
     @Override
     public int getItemCount() {
         return filteredList.size();
     }
 
-    // Method to update adapter data
     public void updateData(List<signupClass> newEntries) {
         userEntries.clear();
         userEntries.addAll(newEntries);
         filterList(""); // Reset filter when data changes
     }
 
-    // Method to filter data based on query
     public void filterList(String query) {
         filteredList.clear();
         if (query.isEmpty()) {
@@ -78,9 +73,9 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         } else {
             query = query.toLowerCase().trim();
             for (signupClass user : userEntries) {
-                if (user.getName().toLowerCase().contains(query)
-                        || user.getMatrixNumber().toLowerCase().contains(query)
-                        || user.getEmail().toLowerCase().contains(query)) {
+                if (user.getName().toLowerCase().contains(query) ||
+                        user.getMatrixNumber().toLowerCase().contains(query) ||
+                        user.getEmail().toLowerCase().contains(query)) {
                     filteredList.add(user);
                 }
             }

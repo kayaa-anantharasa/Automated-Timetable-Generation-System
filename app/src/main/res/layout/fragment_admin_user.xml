@@ -15,24 +15,41 @@ tools:context=".adminUserFragment">
             android:id="@+id/searchuserView"
             android:layout_width="379dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="56dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="627dp"
             android:queryHint="Search user..."
-            tools:layout_editor_absoluteX="16dp"
-            tools:layout_editor_absoluteY="56dp" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/dataviewuser"
             android:layout_width="362dp"
             android:layout_height="679dp"
-            tools:layout_editor_absoluteX="24dp"
-            tools:layout_editor_absoluteY="121dp" />
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="121dp"
+            android:layout_marginEnd="25dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/textView22"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="165dp"
+            android:layout_marginTop="22dp"
+            android:layout_marginEnd="150dp"
+            android:layout_marginBottom="677dp"
             android:text="Students"
             android:textSize="24sp"
-            tools:layout_editor_absoluteX="165dp"
-            tools:layout_editor_absoluteY="22dp" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </FrameLayout>

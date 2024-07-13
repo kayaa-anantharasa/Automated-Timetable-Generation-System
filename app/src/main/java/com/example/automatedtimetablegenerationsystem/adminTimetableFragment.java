@@ -197,9 +197,13 @@ public class adminTimetableFragment extends Fragment {
                     String prerequisiteName = snapshot.child("name").getValue(String.class);
                     prerequisiteList.add(prerequisiteName);
                 }
-                ArrayAdapter<String> prerequisiteAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, prerequisiteList);
+
+
+
+                ArrayAdapter<String> prerequisiteAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, prerequisiteList);
                 prerequisiteAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 spinnerprerequisite.setAdapter(prerequisiteAdapter);
+                spinnerprerequisite.setTokenizer(new MultiAutoCompleteTextView.CommaTokenizer());
             }
 
             @Override

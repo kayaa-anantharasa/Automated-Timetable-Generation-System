@@ -1,6 +1,7 @@
 package com.example.automatedtimetablegenerationsystem;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +27,7 @@ public class adminUserFragment extends Fragment {
     private RecyclerView recyclerView;
     private UserAdapter adapter;
     private List<signupClass> userEntries;
+    private DatabaseReference databaseRef;
     private SearchView searchView;
 
     @Nullable
@@ -33,21 +35,17 @@ public class adminUserFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_admin_user, container, false);
 
-        // Initialize RecyclerView
         recyclerView = view.findViewById(R.id.dataviewuser);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        // Initialize userEntries
         userEntries = new ArrayList<>();
+        databaseRef = FirebaseDatabase.getInstance().getReference("users");
 
-        // Initialize adapter
         adapter = new UserAdapter(getContext(), userEntries);
         recyclerView.setAdapter(adapter);
 
-        // Fetch data from Firebase Realtime Database
         fetchDataFromFirebase();
 
-        // Initialize SearchView
         searchView = view.findViewById(R.id.searchuserView);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -57,7 +55,7 @@ public class adminUserFragment extends Fragment {
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                adapter.filterList(newText); // Filter adapter's data based on user input
+                adapter.filterList(newText);
                 return true;
             }
         });
@@ -65,23 +63,24 @@ public class adminUserFragment extends Fragment {
         return view;
     }
 
-    // Method to fetch data from Firebase Realtime Database
     private void fetchDataFromFirebase() {
-        DatabaseReference databaseRef = FirebaseDatabase.getInstance().getReference("users");
         databaseRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                userEntries.clear(); // Clear existing entries
+                userEntries.clear();
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     signupClass user = snapshot.getValue(signupClass.class);
-                    userEntries.add(user);
+                    if (user != null) {
+                        userEntries.add(user);
+                    }
                 }
-                adapter.updateData(userEntries); // Update adapter's data and notify changes
+                adapter.updateData(userEntries);
+                Log.d("FirebaseData", "Data loaded successfully.");
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                // Handle errors
+                Log.e("FirebaseData", "Error loading data: " + databaseError.getMessage());
             }
         });
     }

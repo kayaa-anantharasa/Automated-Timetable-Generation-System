@@ -45,7 +45,7 @@ public class adminHomeFragment extends Fragment {
         databaseRef = FirebaseDatabase.getInstance().getReference("timetable");
 
         // Initialize adapter
-        adapter = new TimetableAdapter(getContext(), timetableEntries, databaseRef);
+        adapter = new TimetableAdapter(getContext(), timetableEntries);
         recyclerView.setAdapter(adapter);
 
         // Fetch data from Firebase Realtime Database
