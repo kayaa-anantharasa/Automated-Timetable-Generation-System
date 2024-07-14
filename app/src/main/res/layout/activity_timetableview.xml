@@ -9,7 +9,8 @@
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:fillViewport="true">
 
         <LinearLayout
@@ -46,9 +47,22 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:stretchColumns="1"
-                android:layout_marginTop="16dp">
+                android:layout_marginTop="16dp"
+                android:showDividers="middle"
+                android:divider="@drawable/table_divider">
                 <!-- Table rows will be dynamically added here -->
             </TableLayout>
         </LinearLayout>
     </ScrollView>
+
+    <!-- Total Hours TextView -->
+    <TextView
+        android:id="@+id/totalHoursTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Total Hours: "
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:gravity="center_horizontal"
+        android:layout_marginTop="16dp"/>
 </LinearLayout>
