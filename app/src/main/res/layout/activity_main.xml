@@ -8,6 +8,7 @@
     android:background="@drawable/b1"
     android:gravity="center"
     tools:context=".MainActivity">
+    <!-- activity_main.xml or any appropriate layout -->
 
 
     <Button

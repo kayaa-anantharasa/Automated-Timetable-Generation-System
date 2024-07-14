@@ -41,14 +41,16 @@ public class adminUserFragment extends Fragment {
 
         // Initialize userEntries
         userEntries = new ArrayList<>();
-        databaseRef = FirebaseDatabase.getInstance().getReference("users");
 
         // Initialize adapter
         adapter = new UserAdapter(getContext(), userEntries);
         recyclerView.setAdapter(adapter);
 
-        // Fetch data from Firebase
-        fetchDataFromFirebase();
+        // Initialize Firebase Database reference
+        databaseRef = FirebaseDatabase.getInstance().getReference().child("users");
+
+        // Fetch all users from Firebase
+        fetchAllUsersFromFirebase();
 
         // Initialize SearchView
         searchView = view.findViewById(R.id.searchuserView);
@@ -68,7 +70,7 @@ public class adminUserFragment extends Fragment {
         return view;
     }
 
-    private void fetchDataFromFirebase() {
+    private void fetchAllUsersFromFirebase() {
         databaseRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -80,7 +82,7 @@ public class adminUserFragment extends Fragment {
                     }
                 }
                 adapter.updateData(userEntries); // Update adapter data
-                Log.d("FirebaseData", "Data loaded successfully.");
+                Log.d("FirebaseData", "Data loaded successfully. User count: " + userEntries.size());
             }
 
             @Override
