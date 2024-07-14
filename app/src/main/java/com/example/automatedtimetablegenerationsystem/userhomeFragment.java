@@ -2,12 +2,12 @@ package com.example.automatedtimetablegenerationsystem;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -27,12 +27,15 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class userhomeFragment extends Fragment {
+
     private Spinner spinnerSemester;
     private Spinner spinnerProgram;
     private Spinner spinnerclass;
@@ -42,26 +45,44 @@ public class userhomeFragment extends Fragment {
     private ProgressBar progressBar;
     private DatabaseReference timetableRef;
     private List<TimetableEntry> timetableData = new ArrayList<>();
+    private TextView fname,fletter,ftime; // TextView to display username
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_userhome, container, false);
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-         DatabaseReference  classesRef = database.getReference("classes");
-         DatabaseReference programRef = database.getReference("program");
 
-        // Initialize Spinners
+        // Initialize Views
+        fname = view.findViewById(R.id.name);
+        fletter= view.findViewById(R.id.firstletter);
+        ftime= view.findViewById(R.id.time);
         spinnerSemester = view.findViewById(R.id.semesters);
         spinnerProgram = view.findViewById(R.id.program);
         spinnerclass = view.findViewById(R.id.classname);
         progressBar = view.findViewById(R.id.progressBar);
+        showTimetableButton = view.findViewById(R.id.showtimetable);
 
+        // Load username from SharedPreferences
+        SharedPreferences preferences = requireContext().getSharedPreferences("user_data", requireContext().MODE_PRIVATE);
+        String username = preferences.getString("username", "Default Name");
+        fname.setText(username); // Set username to fname TextView
+        String firstLetter = username.substring(0, 1);
+        fletter.setText(firstLetter);
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String currentDateTime = sdf.format(calendar.getTime());
+        ftime.setText(currentDateTime);
         // Initialize Spinners with adapters
         ArrayAdapter<String> semesterAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, semesters);
         semesterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerSemester.setAdapter(semesterAdapter);
 
+        // Firebase Database References
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference classesRef = database.getReference("classes");
+        DatabaseReference programRef = database.getReference("program");
+
+        // Load classes from Firebase
         classesRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -80,7 +101,8 @@ public class userhomeFragment extends Fragment {
                 Toast.makeText(requireContext(), "Failed to load classes", Toast.LENGTH_SHORT).show();
             }
         });
-        // Setup ValueEventListener for program
+
+        // Load programs from Firebase
         programRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -100,62 +122,48 @@ public class userhomeFragment extends Fragment {
             }
         });
 
-        // Initialize Firebase
-        timetableRef = FirebaseDatabase.getInstance().getReference().child("timetable");
-
-        // Initialize button and set click listener
-        showTimetableButton = view.findViewById(R.id.showtimetable);
+        // Set click listener for showTimetableButton
         showTimetableButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String selectedSemester = spinnerSemester.getSelectedItem().toString();
                 String selectedProgram = spinnerProgram.getSelectedItem().toString();
-                String selectedClass= spinnerclass.getSelectedItem().toString();
-                fetchTimetable(selectedSemester, selectedProgram,selectedClass);
+                String selectedClass = spinnerclass.getSelectedItem().toString();
+                fetchTimetable(selectedSemester, selectedProgram, selectedClass);
             }
         });
 
         return view;
     }
 
-    private void fetchTimetable(String semester, String program,String classname) {
+    private void fetchTimetable(String semester, String program, String classname) {
         progressBar.setVisibility(View.VISIBLE);
+        timetableRef = FirebaseDatabase.getInstance().getReference().child("timetable");
         timetableRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 progressBar.setVisibility(View.GONE);
                 if (snapshot.exists()) {
-                    // Clear previous data
-                    timetableData.clear();
-
-                    // Iterate through all children
+                    timetableData.clear(); // Clear previous data
                     for (DataSnapshot timetableSnapshot : snapshot.getChildren()) {
-                        // Get the timetable entry data
                         String entrySemester = timetableSnapshot.child("semi").getValue(String.class);
                         String entryProgram = timetableSnapshot.child("program").getValue(String.class);
                         String entryclass = timetableSnapshot.child("classname").getValue(String.class);
-                        // Check if the semester and program match the selected ones
                         if (entrySemester != null && entryProgram != null && entryclass != null &&
                                 entrySemester.equals(semester) && entryProgram.equals(program) && entryclass.equals(classname)) {
-                            // Convert snapshot to TimetableEntry object
                             TimetableEntry timetableEntry = timetableSnapshot.getValue(TimetableEntry.class);
                             if (timetableEntry != null) {
                                 timetableData.add(timetableEntry);
                             }
                         }
                     }
-
-                    // Update UI with timetableData
                     if (!timetableData.isEmpty()) {
-                        // Display Toast message
                         Toast.makeText(requireContext(), "Timetable loaded for " + semester + " - " + program, Toast.LENGTH_SHORT).show();
                         showTimetableDialog(timetableData);
                     } else {
-                        // If no timetable data found for the selected semester and program
                         Toast.makeText(requireContext(), "No timetable found for " + semester + " - " + program, Toast.LENGTH_SHORT).show();
                     }
                 } else {
-                    // If no timetable data available at all
                     Toast.makeText(requireContext(), "No timetable data available", Toast.LENGTH_SHORT).show();
                 }
             }
@@ -167,18 +175,13 @@ public class userhomeFragment extends Fragment {
             }
         });
     }
+
     private void showTimetableDialog(List<TimetableEntry> timetableEntries) {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        //builder.setTitle("Timetable Details");
-
-        // Inflate the custom layout for the dialog
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_timetable, null);
         builder.setView(dialogView);
 
-        // Initialize the TableLayout in the dialog
         TableLayout tableLayout = dialogView.findViewById(R.id.timetableTable);
-
-        // Add table headers
         TableRow headerRow = new TableRow(requireContext());
         String[] headers = {"Time", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"};
         for (String header : headers) {
@@ -193,12 +196,10 @@ public class userhomeFragment extends Fragment {
         }
         tableLayout.addView(headerRow);
 
-        // Define time slots
         String[] timeSlots = {"8:00 AM - 9:00 AM", "9:00 AM - 10:00 AM", "10:00 AM - 11:00 AM", "11:00 AM - 12:00 PM",
                 "12:00 PM - 1:00 PM", "1:00 PM - 2:00 PM", "2:00 PM - 3:00 PM", "3:00 PM - 4:00 PM",
                 "4:00 PM - 5:00 PM", "5:00 PM - 6:00 PM"};
 
-        // Create a map to hold timetable entries by day and time slot
         Map<String, Map<String, TimetableEntry>> timetableMap = new HashMap<>();
         for (String day : headers) {
             if (!day.equals("Time")) {
@@ -206,7 +207,7 @@ public class userhomeFragment extends Fragment {
             }
         }
         for (TimetableEntry entry : timetableEntries) {
-            String[] days = entry.getDays().split(",\\s*"); // Split days string into individual days
+            String[] days = entry.getDays().split(",\\s*");
             for (String day : days) {
                 if (timetableMap.containsKey(day)) {
                     timetableMap.get(day).put(entry.getTime(), entry);
@@ -214,11 +215,8 @@ public class userhomeFragment extends Fragment {
             }
         }
 
-        // Populate the table rows
         for (String timeSlot : timeSlots) {
             TableRow row = new TableRow(requireContext());
-
-            // Time column
             TextView timeTextView = new TextView(requireContext());
             timeTextView.setText(timeSlot);
             timeTextView.setPadding(16, 16, 16, 16);
@@ -228,7 +226,6 @@ public class userhomeFragment extends Fragment {
             timeTextView.setTextColor(getResources().getColor(R.color.white));
             row.addView(timeTextView);
 
-            // Day columns
             for (String day : headers) {
                 if (!day.equals("Time")) {
                     TextView cellTextView = new TextView(requireContext());
@@ -250,12 +247,11 @@ public class userhomeFragment extends Fragment {
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                dialogInterface.dismiss(); // Dismiss dialog on OK button click
+                dialogInterface.dismiss();
             }
         });
 
         AlertDialog dialog = builder.create();
         dialog.show();
     }
-
 }

@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/b9"
     tools:context=".usertimetableFragment">
 
     <!-- Spinner for selecting subject -->
@@ -18,7 +19,7 @@
         android:layout_marginEnd="118dp"
         android:layout_marginBottom="673dp"
         android:text="Generate Timetable"
-        android:textColor="@color/blue"
+        android:textColor="@color/white"
         android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -81,33 +82,13 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <Spinner
-        android:id="@+id/failedsemester"
-        android:layout_width="347dp"
-        android:layout_height="48dp"
-        android:layout_marginStart="34dp"
-        android:layout_marginTop="531dp"
-        android:layout_marginEnd="30dp"
-        android:layout_marginBottom="152dp"
-        android:prompt="@string/spinner_failedsemi"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <Button
         android:id="@+id/addtimetable"
         android:layout_width="168dp"
         android:layout_height="49dp"
-        android:layout_marginStart="121dp"
-        android:layout_marginTop="591dp"
-        android:layout_marginEnd="122dp"
-        android:layout_marginBottom="91dp"
         android:text="Add"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        tools:layout_editor_absoluteX="117dp"
+        tools:layout_editor_absoluteY="470dp" />
 
     <LinearLayout
         android:id="@+id/containerLayout"
@@ -117,20 +98,6 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:orientation="vertical" />
-
-    <TextView
-        android:id="@+id/textView11"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="34dp"
-        android:layout_marginTop="490dp"
-        android:layout_marginEnd="232dp"
-        android:layout_marginBottom="222dp"
-        android:text="Select repeat semester"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/textView125"

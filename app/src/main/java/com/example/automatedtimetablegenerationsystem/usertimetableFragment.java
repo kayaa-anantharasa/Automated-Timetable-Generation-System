@@ -68,7 +68,6 @@ public class usertimetableFragment extends Fragment {
         spinnerCount = view.findViewById(R.id.subject);
         spinnerSemester = view.findViewById(R.id.semi);
         spinnerProgram = view.findViewById(R.id.currentprogram);
-        spinnerFailedSemester = view.findViewById(R.id.failedsemester);
         addButton = view.findViewById(R.id.addtimetable);
         containerLayout = view.findViewById(R.id.containerLayout);
 
