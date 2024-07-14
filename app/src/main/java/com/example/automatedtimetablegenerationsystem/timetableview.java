@@ -2,6 +2,8 @@ package com.example.automatedtimetablegenerationsystem;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -10,16 +12,13 @@ import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +32,7 @@ public class timetableview extends AppCompatActivity {
     private int selectedCount;
     private String selectedCurrentSemester;
     private String selectedProgram;
+    private Button addSubjectsButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,7 +41,7 @@ public class timetableview extends AppCompatActivity {
 
         repeatSubjectsContainer = findViewById(R.id.repeatSubjectsContainer);
         timetableTable = findViewById(R.id.timetableTable);
-        Button addSubjectsButton = findViewById(R.id.addSubjectsButton);
+        addSubjectsButton = findViewById(R.id.addSubjectsButton);
 
         selectedCount = getIntent().getIntExtra("selectedCount", 0);
         selectedCurrentSemester = getIntent().getStringExtra("selectedCurrentSemester");
@@ -89,6 +89,7 @@ public class timetableview extends AppCompatActivity {
     private void addSubjectClassRow(ArrayAdapter<String> subjectAdapter) {
         LinearLayout rowLayout = new LinearLayout(this);
         rowLayout.setOrientation(LinearLayout.HORIZONTAL);
+        rowLayout.setPadding(0, 8, 0, 8);
 
         Spinner subjectSpinner = new Spinner(this);
         subjectSpinner.setAdapter(subjectAdapter);
@@ -122,7 +123,6 @@ public class timetableview extends AppCompatActivity {
 
     private void generateTimetable() {
         final Map<String, String> selectedSubjects = new HashMap<>();
-        final Map<String, String> selectedClasses = new HashMap<>();
 
         // Collect selected subjects and classes
         for (int i = 0; i < repeatSubjectsContainer.getChildCount(); i++) {
@@ -146,6 +146,9 @@ public class timetableview extends AppCompatActivity {
             TextView headerTextView = new TextView(this);
             headerTextView.setText(header);
             headerTextView.setPadding(8, 8, 8, 8);
+            headerTextView.setGravity(Gravity.CENTER);
+            headerTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+            headerTextView.setBackgroundColor(Color.LTGRAY);
             headerRow.addView(headerTextView);
         }
         timetableTable.addView(headerRow);
@@ -154,7 +157,7 @@ public class timetableview extends AppCompatActivity {
         String[] timeslots = {"8:00 AM - 9:00 AM", "9:00 AM - 10:00 AM", "10:00 AM - 11:00 AM", "11:00 AM - 12:00 PM", "12:00 PM - 1:00 PM", "1:00 PM - 2:00 PM", "2:00 PM - 3:00 PM", "3:00 PM - 4:00 PM"};
 
         // Load timetable from Firebase and populate the table
-        databaseReference.child("timetable").child(selectedProgram).child(selectedCurrentSemester).addValueEventListener(new ValueEventListener() {
+        databaseReference.child("timetable").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (String timeslot : timeslots) {
@@ -162,22 +165,37 @@ public class timetableview extends AppCompatActivity {
                     TextView timeTextView = new TextView(timetableview.this);
                     timeTextView.setText(timeslot);
                     timeTextView.setPadding(8, 8, 8, 8);
+                    timeTextView.setGravity(Gravity.CENTER);
+                    timeTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
                     row.addView(timeTextView);
 
                     for (String day : headers) {
                         if (!day.equals("Time")) {
                             TextView dayTextView = new TextView(timetableview.this);
                             dayTextView.setPadding(8, 8, 8, 8);
+                            dayTextView.setGravity(Gravity.CENTER);
+                            dayTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+                            dayTextView.setBackgroundColor(Color.WHITE);
+                            dayTextView.setText(""); // Empty cell, can be updated later
 
-                            if (dataSnapshot.hasChild(day) && dataSnapshot.child(day).hasChild(timeslot)) {
-                                String subject = dataSnapshot.child(day).child(timeslot).child("subject").getValue(String.class);
-                                String className = dataSnapshot.child(day).child(timeslot).child("class").getValue(String.class);
+                            boolean matchFound = false;
+                            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                String dbClassName = snapshot.child("classname").getValue(String.class);
+                                String dbSubjectName = snapshot.child("subjectName").getValue(String.class);
+                                String dbTime = snapshot.child("time").getValue(String.class);
+                                String dbDays = snapshot.child("days").getValue(String.class);
 
-                                dayTextView.setText(subject + "\n" + className);
-
-                                if (selectedSubjects.containsKey(subject) && selectedSubjects.get(subject).equals(className)) {
-                                    dayTextView.setBackgroundColor(Color.GREEN);
+                                if (selectedSubjects.containsKey(dbSubjectName) && selectedSubjects.get(dbSubjectName).equals(dbClassName)) {
+                                    if (dbDays != null && dbDays.contains(day) && dbTime != null && dbTime.equals(timeslot)) {
+                                        matchFound = true;
+                                        dayTextView.setText(dbSubjectName + "\n" + dbClassName);
+                                        break;
+                                    }
                                 }
+                            }
+
+                            if (matchFound) {
+                                dayTextView.setBackgroundColor(Color.RED);
                             }
 
                             row.addView(dayTextView);
