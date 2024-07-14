@@ -29,21 +29,14 @@ public class usertimetableFragment extends Fragment {
     private Spinner spinnerCount;
     private Spinner spinnerSemester;
     private Spinner spinnerProgram;
-
     private Button addButton;
-    private LinearLayout containerLayout;
     private DatabaseReference timetableRef;
+    private String selectedProgram;
+    private static final int PERMISSION_REQUEST_CODE = 100;
 
     private String[] subjects = {"1", "2", "3", "4", "5", "6", "7", "8"};
     private String[] semesters = {"S1", "S2", "S3", "S4", "S5"};
     private String[] programs = {"CST", "IIT", "EAG"};
-    private String[] subjectNames = {"AI", "Data Science", "EAG"};
-    private String[] classNames = {"C1", "A1", "B3"};
-
-    // Variable to store selected program
-    private String selectedProgram;
-
-    private static final int PERMISSION_REQUEST_CODE = 100;
 
     @Nullable
     @Override
@@ -53,14 +46,10 @@ public class usertimetableFragment extends Fragment {
         spinnerCount = view.findViewById(R.id.subject);
         spinnerSemester = view.findViewById(R.id.semi);
         spinnerProgram = view.findViewById(R.id.currentprogram);
-
         addButton = view.findViewById(R.id.addtimetable);
-        containerLayout = view.findViewById(R.id.containerLayout);
 
         // Initialize Firebase Realtime Database reference
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference classesRef = database.getReference("classes");
-        DatabaseReference subjectRef = database.getReference("subjects");
         DatabaseReference programRef = database.getReference("program");
         timetableRef = database.getReference().child("timetable");
 
@@ -96,13 +85,14 @@ public class usertimetableFragment extends Fragment {
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Get selected count, semester, program, and failed semester
                 int selectedCount = Integer.parseInt(spinnerCount.getSelectedItem().toString());
                 String selectedCurrentSemester = spinnerSemester.getSelectedItem().toString();
                 selectedProgram = spinnerProgram.getSelectedItem().toString();
 
-                // Navigate to timetableview activity
                 Intent intent = new Intent(requireContext(), timetableview.class);
+                intent.putExtra("selectedCount", selectedCount);
+                intent.putExtra("selectedCurrentSemester", selectedCurrentSemester);
+                intent.putExtra("selectedProgram", selectedProgram);
                 startActivity(intent);
             }
         });

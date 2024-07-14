@@ -8,21 +8,15 @@
     tools:context=".usertimetableFragment">
 
     <!-- Spinner for selecting subject -->
-
-
     <TextView
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="117dp"
         android:layout_marginTop="31dp"
-        android:layout_marginEnd="118dp"
-        android:layout_marginBottom="673dp"
         android:text="Generate Timetable"
         android:textColor="@color/white"
         android:textSize="20sp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -31,13 +25,9 @@
         android:id="@+id/textView122"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="34dp"
         android:layout_marginTop="107dp"
-        android:layout_marginEnd="194dp"
-        android:layout_marginBottom="605dp"
         android:text="Select your Current Semester"
         android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -46,12 +36,8 @@
         android:id="@+id/subject"
         android:layout_width="341dp"
         android:layout_height="54dp"
-        android:layout_marginStart="34dp"
         android:layout_marginTop="270dp"
-        android:layout_marginEnd="36dp"
-        android:layout_marginBottom="407dp"
         android:prompt="@string/spinner_subject"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -60,12 +46,8 @@
         android:id="@+id/semi"
         android:layout_width="347dp"
         android:layout_height="48dp"
-        android:layout_marginStart="32dp"
         android:layout_marginTop="152dp"
-        android:layout_marginEnd="32dp"
-        android:layout_marginBottom="531dp"
         android:prompt="@string/spinner_semi"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -74,12 +56,8 @@
         android:id="@+id/currentprogram"
         android:layout_width="347dp"
         android:layout_height="48dp"
-        android:layout_marginStart="34dp"
         android:layout_marginTop="396dp"
-        android:layout_marginEnd="30dp"
-        android:layout_marginBottom="287dp"
         android:prompt="@string/spinner_program"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -88,36 +66,27 @@
         android:id="@+id/addtimetable"
         android:layout_width="168dp"
         android:layout_height="49dp"
-        android:layout_marginStart="115dp"
         android:layout_marginTop="474dp"
-        android:layout_marginEnd="128dp"
-        android:layout_marginBottom="208dp"
         android:text="Add"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <LinearLayout
         android:id="@+id/containerLayout"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:orientation="vertical" />
+        android:layout_margin="16dp"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@+id/addtimetable" />
 
     <TextView
         android:id="@+id/textView125"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="34dp"
         android:layout_marginTop="356dp"
-        android:layout_marginEnd="251dp"
-        android:layout_marginBottom="356dp"
         android:text="Select your program"
         android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -126,16 +95,11 @@
         android:id="@+id/textView12345"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="34dp"
         android:layout_marginTop="236dp"
-        android:layout_marginEnd="163dp"
-        android:layout_marginBottom="476dp"
         android:text="Select Number of Repeat Subjects"
         android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>
