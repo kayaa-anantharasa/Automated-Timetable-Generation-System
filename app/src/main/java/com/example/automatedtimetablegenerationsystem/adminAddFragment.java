@@ -7,8 +7,10 @@ import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -131,7 +133,19 @@ public class adminAddFragment extends Fragment {
         inputSubjectCode.setInputType(InputType.TYPE_CLASS_TEXT);
         inputSubjectCode.setHint("Subject Code");
         layout.addView(inputSubjectCode);
+        // Spinner for Semester selection
+        Spinner spinnerSemester = new Spinner(requireContext());
+        String[] semesters = {"s1", "s2", "s3", "s4", "s5"};
+        ArrayAdapter<String> adapterSemester = new ArrayAdapter<>(requireContext(),
+                android.R.layout.simple_spinner_item, semesters);
+        adapterSemester.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerSemester.setAdapter(adapterSemester);
+        layout.addView(spinnerSemester);
 
+        final EditText pre = new EditText(requireContext());
+        pre.setInputType(InputType.TYPE_CLASS_TEXT);
+        pre.setHint("prerequisite Subject");
+        layout.addView(pre);
         builder.setView(layout);
 
         // Initialize Firebase Database reference
@@ -144,11 +158,12 @@ public class adminAddFragment extends Fragment {
             public void onClick(DialogInterface dialog, int which) {
                 String subjectName = inputSubjectName.getText().toString().trim();
                 String subjectCode = inputSubjectCode.getText().toString().trim();
-
+                String semester = spinnerSemester.getSelectedItem().toString();
+                String presub = pre.getText().toString().trim();
                 if (!subjectName.isEmpty() && !subjectCode.isEmpty()) {
                     // Save subject to Firebase Database
                     String subjectId = subjectsRef.push().getKey(); // Generate a unique key for the new subject
-                    subjectModel newSubject = new subjectModel(subjectId, subjectName, subjectCode);
+                    subjectModel newSubject = new subjectModel(subjectId, subjectName, subjectCode,semester,presub);
                     subjectsRef.child(subjectId).setValue(newSubject);
 
                     Toast.makeText(requireContext(), "Subject added", Toast.LENGTH_SHORT).show();

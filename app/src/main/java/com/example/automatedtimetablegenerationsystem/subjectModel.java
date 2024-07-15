@@ -1,8 +1,16 @@
 package com.example.automatedtimetablegenerationsystem;
 
 public class subjectModel {
-    String Id,subjectName,subjectcode;
+    String Id,subjectName,subjectcode,semester,prerequisiteSubject;
     public subjectModel() {
+    }
+
+    public subjectModel(String id, String subjectName, String subjectcode, String semester, String prerequisiteSubject) {
+        Id = id;
+        this.subjectName = subjectName;
+        this.subjectcode = subjectcode;
+        this.semester = semester;
+        this.prerequisiteSubject = prerequisiteSubject;
     }
 
     public String getId() {
@@ -29,9 +37,19 @@ public class subjectModel {
         this.subjectcode = subjectcode;
     }
 
-    public subjectModel(String id, String subjectName, String subjectcode) {
-        Id = id;
-        this.subjectName = subjectName;
-        this.subjectcode = subjectcode;
+    public String getSemester() {
+        return semester;
+    }
+
+    public void setSemester(String semester) {
+        this.semester = semester;
+    }
+
+    public String getPrerequisiteSubject() {
+        return prerequisiteSubject;
+    }
+
+    public void setPrerequisiteSubject(String prerequisiteSubject) {
+        this.prerequisiteSubject = prerequisiteSubject;
     }
 }
