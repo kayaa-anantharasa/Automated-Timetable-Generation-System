@@ -69,7 +69,9 @@ public class usertimetableFragment extends Fragment {
                 List<String> programList = new ArrayList<>();
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     String programName = snapshot.child("name").getValue(String.class);
-                    programList.add(programName);
+                    if (programName != null) {
+                        programList.add(programName);
+                    }
                 }
                 ArrayAdapter<String> programAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, programList);
                 programAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -81,6 +83,7 @@ public class usertimetableFragment extends Fragment {
                 Toast.makeText(requireContext(), "Failed to load programs", Toast.LENGTH_SHORT).show();
             }
         });
+
 
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
