@@ -135,7 +135,7 @@ public class adminAddFragment extends Fragment {
         layout.addView(inputSubjectCode);
         // Spinner for Semester selection
         Spinner spinnerSemester = new Spinner(requireContext());
-        String[] semesters = {"s1", "s2", "s3", "s4", "s5"};
+        String[] semesters = {"S1", "S2", "S3", "S4", "S5"};
         ArrayAdapter<String> adapterSemester = new ArrayAdapter<>(requireContext(),
                 android.R.layout.simple_spinner_item, semesters);
         adapterSemester.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);

@@ -71,7 +71,7 @@ public class timetableview extends AppCompatActivity {
         addCurrentSubjectsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                addCurrentSubjectClassRow();
+                addCurrentSubjectClassRow(selectedCurrentSemester);
             }
         });
     }
@@ -81,8 +81,10 @@ public class timetableview extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 List<String> subjectList = new ArrayList<>();
+                subjectList.add("Please Select");// Add default item
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     String subjectName = snapshot.child("subjectName").getValue(String.class);
+
                     subjectList.add(subjectName);
                 }
 
@@ -100,13 +102,14 @@ public class timetableview extends AppCompatActivity {
             }
         });
     }
-
     private void addSubjectClassRow(ArrayAdapter<String> subjectAdapter) {
         LinearLayout rowLayout = new LinearLayout(this);
         rowLayout.setOrientation(LinearLayout.HORIZONTAL);
         rowLayout.setPadding(0, 8, 0, 8);
 
         Spinner subjectSpinner = new Spinner(this);
+        // Set initial selection to the first item ("Please select")
+        subjectSpinner.setSelection(0);
         subjectSpinner.setAdapter(subjectAdapter);
 
         Spinner classSpinner = new Spinner(this);
@@ -114,8 +117,10 @@ public class timetableview extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 List<String> classList = new ArrayList<>();
+                classList.add("Please Select class ");
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     String className = snapshot.child("className").getValue(String.class);
+
                     classList.add(className);
                 }
 
@@ -136,14 +141,19 @@ public class timetableview extends AppCompatActivity {
         repeatSubjectsContainer.addView(rowLayout);
     }
 
-    private void addCurrentSubjectClassRow() {
+    private void addCurrentSubjectClassRow(String currentSemester) {
         databaseReference.child("subjects").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 List<String> subjectList = new ArrayList<>();
+                subjectList.add("Please Select");
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     String subjectName = snapshot.child("subjectName").getValue(String.class);
-                    subjectList.add(subjectName);
+                    String subjectSemester = snapshot.child("semester").getValue(String.class); // Assuming 'semester' is stored in your database
+                    // Filter subjects by current semester
+                    if (subjectSemester != null && subjectSemester.equals(currentSemester)) {
+                        subjectList.add(subjectName);
+                    }
                 }
 
                 ArrayAdapter<String> subjectAdapter = new ArrayAdapter<>(timetableview.this, android.R.layout.simple_spinner_item, subjectList);
@@ -161,6 +171,7 @@ public class timetableview extends AppCompatActivity {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         List<String> classList = new ArrayList<>();
+                        classList.add("Please Select class ");
                         for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                             String className = snapshot.child("className").getValue(String.class);
                             classList.add(className);
@@ -189,6 +200,7 @@ public class timetableview extends AppCompatActivity {
             }
         });
     }
+
 
     private void generateTimetable() {
         final Map<String, String> selectedSubjects = new HashMap<>();
@@ -229,7 +241,7 @@ public class timetableview extends AppCompatActivity {
             headerTextView.setText(header);
             headerTextView.setPadding(8, 8, 8, 8);
             headerTextView.setGravity(Gravity.CENTER);
-            headerTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+            headerTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 8);
             headerTextView.setBackgroundColor(Color.LTGRAY);
             headerRow.addView(headerTextView);
 
@@ -252,7 +264,7 @@ public class timetableview extends AppCompatActivity {
                     timeTextView.setText(timeslot);
                     timeTextView.setPadding(8, 8, 8, 8);
                     timeTextView.setGravity(Gravity.CENTER);
-                    timeTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+                    timeTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 8);
                     row.addView(timeTextView);
 
                     for (String day : headers) {
@@ -260,7 +272,7 @@ public class timetableview extends AppCompatActivity {
                             TextView dayTextView = new TextView(timetableview.this);
                             dayTextView.setPadding(8, 8, 8, 8);
                             dayTextView.setGravity(Gravity.CENTER);
-                            dayTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+                            dayTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);
                             dayTextView.setBackgroundColor(Color.WHITE);
                             dayTextView.setText(""); // Empty cell, can be updated later
 
@@ -308,8 +320,6 @@ public class timetableview extends AppCompatActivity {
     }
 
     private void displayTotalHours(Map<String, Map<String, Integer>> dayTimeslotHours) {
-        StringBuilder totalHoursText = new StringBuilder("Total Hours:\n");
-
         // Map to store total hours for each unique timeslot
         Map<String, Integer> totalHoursPerTimeslot = new HashMap<>();
 
@@ -327,20 +337,31 @@ public class timetableview extends AppCompatActivity {
             }
         }
 
+        // Calculate the final total hours
+        int finalTotalHours = 0;
+        StringBuilder totalHoursText = new StringBuilder("Total Hours:\n");
+
         // Construct the total hours text based on the accumulated totals per timeslot
         for (Map.Entry<String, Integer> totalEntry : totalHoursPerTimeslot.entrySet()) {
             String timeslot = totalEntry.getKey();
             int totalHours = totalEntry.getValue();
 
             // Example format: 8:00 AM - 9:00 AM is 1 hour (total)
-            totalHoursText.append(timeslot).append(" is ").append(totalHours).append(" hour");
-            if (totalHours > 1) {
-                totalHoursText.append("s"); // Pluralize if more than one hour
-            }
+         //   totalHoursText.append(timeslot).append(" is ").append(totalHours).append(" hour");
+           // if (totalHours > 1) {
+               // totalHoursText.append("s"); // Pluralize if more than one hour
+          //  }
             totalHoursText.append("\n");
+
+            // Accumulate to final total hours
+            finalTotalHours += totalHours;
         }
 
-        // Update the TextView with the accumulated total hours text
+        // Append the final total hours
+        totalHoursText.append(finalTotalHours).append(" hours");
+
+        // Update the TextView with the accumulated total hours text including final total
         totalHoursTextView.setText(totalHoursText.toString());
     }
+
 }

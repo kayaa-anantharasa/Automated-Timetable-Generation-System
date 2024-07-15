@@ -4,7 +4,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    tools:context=".timetableview">
+    tools:context=".timetableview"
+    android:background="@drawable/b7">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -20,10 +21,11 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Configure Repeat Subjects"
+                android:layout_marginBottom="16dp"
+                android:text="Subject                                            Class"
+                android:textColor="@color/blue"
                 android:textSize="18sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="16dp"/>
+                android:textStyle="bold" />
 
             <LinearLayout
                 android:id="@+id/repeatSubjectsContainer"
@@ -34,10 +36,11 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Configure Current Subjects"
+                android:layout_marginBottom="16dp"
+                android:text="Subject                                            Class"
+                android:textColor="@color/blue"
                 android:textSize="18sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="16dp"/>
+                android:textStyle="bold" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -66,8 +69,9 @@
                 android:id="@+id/addSubjectsButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Generate Timetable"
-                android:layout_marginTop="16dp"/>
+                android:layout_marginTop="16dp"
+                android:layout_marginLeft="90dp"
+                android:text="Generate Timetable" />
 
             <TableLayout
                 android:id="@+id/timetableTable"
