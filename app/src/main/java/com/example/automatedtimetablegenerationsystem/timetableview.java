@@ -7,6 +7,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TableLayout;
@@ -27,12 +28,14 @@ import java.util.Map;
 public class timetableview extends AppCompatActivity {
 
     private LinearLayout repeatSubjectsContainer;
+    private LinearLayout currentSubjectsContainer;
     private TableLayout timetableTable;
     private DatabaseReference databaseReference;
     private int selectedCount;
     private String selectedCurrentSemester;
     private String selectedProgram;
     private Button addSubjectsButton;
+    private ImageView addCurrentSubjectsButton;
     private TextView totalHoursTextView;
 
     @Override
@@ -41,9 +44,11 @@ public class timetableview extends AppCompatActivity {
         setContentView(R.layout.activity_timetableview);
 
         repeatSubjectsContainer = findViewById(R.id.repeatSubjectsContainer);
+        currentSubjectsContainer = findViewById(R.id.currentSubjectsContainer);
         timetableTable = findViewById(R.id.timetableTable);
         totalHoursTextView = findViewById(R.id.totalHoursTextView);
         addSubjectsButton = findViewById(R.id.addSubjectsButton);
+        addCurrentSubjectsButton = findViewById(R.id.addCurrentSubjectsButton);
 
         selectedCount = getIntent().getIntExtra("selectedCount", 0);
         selectedCurrentSemester = getIntent().getStringExtra("selectedCurrentSemester");
@@ -59,6 +64,14 @@ public class timetableview extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 generateTimetable();
+            }
+        });
+
+        // Handle add current subjects button click
+        addCurrentSubjectsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                addCurrentSubjectClassRow();
             }
         });
     }
@@ -123,6 +136,60 @@ public class timetableview extends AppCompatActivity {
         repeatSubjectsContainer.addView(rowLayout);
     }
 
+    private void addCurrentSubjectClassRow() {
+        databaseReference.child("subjects").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                List<String> subjectList = new ArrayList<>();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    String subjectName = snapshot.child("subjectName").getValue(String.class);
+                    subjectList.add(subjectName);
+                }
+
+                ArrayAdapter<String> subjectAdapter = new ArrayAdapter<>(timetableview.this, android.R.layout.simple_spinner_item, subjectList);
+                subjectAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+                LinearLayout rowLayout = new LinearLayout(timetableview.this);
+                rowLayout.setOrientation(LinearLayout.HORIZONTAL);
+                rowLayout.setPadding(0, 8, 0, 8);
+
+                Spinner subjectSpinner = new Spinner(timetableview.this);
+                subjectSpinner.setAdapter(subjectAdapter);
+
+                Spinner classSpinner = new Spinner(timetableview.this);
+                databaseReference.child("classes").addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        List<String> classList = new ArrayList<>();
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            String className = snapshot.child("className").getValue(String.class);
+                            classList.add(className);
+                        }
+
+                        ArrayAdapter<String> classAdapter = new ArrayAdapter<>(timetableview.this, android.R.layout.simple_spinner_item, classList);
+                        classAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                        classSpinner.setAdapter(classAdapter);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                        // Handle error
+                    }
+                });
+
+                rowLayout.addView(subjectSpinner);
+                rowLayout.addView(classSpinner);
+
+                currentSubjectsContainer.addView(rowLayout);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                // Handle error
+            }
+        });
+    }
+
     private void generateTimetable() {
         final Map<String, String> selectedSubjects = new HashMap<>();
         final Map<String, Map<String, Integer>> dayTimeslotHours = new HashMap<>(); // Map to store hours for each day and timeslot
@@ -130,6 +197,18 @@ public class timetableview extends AppCompatActivity {
         // Collect selected subjects and classes
         for (int i = 0; i < repeatSubjectsContainer.getChildCount(); i++) {
             LinearLayout rowLayout = (LinearLayout) repeatSubjectsContainer.getChildAt(i);
+            Spinner subjectSpinner = (Spinner) rowLayout.getChildAt(0);
+            Spinner classSpinner = (Spinner) rowLayout.getChildAt(1);
+
+            String subject = subjectSpinner.getSelectedItem().toString();
+            String className = classSpinner.getSelectedItem().toString();
+
+            selectedSubjects.put(subject, className);
+        }
+
+        // Collect current subjects and classes
+        for (int i = 0; i < currentSubjectsContainer.getChildCount(); i++) {
+            LinearLayout rowLayout = (LinearLayout) currentSubjectsContainer.getChildAt(i);
             Spinner subjectSpinner = (Spinner) rowLayout.getChildAt(0);
             Spinner classSpinner = (Spinner) rowLayout.getChildAt(1);
 
@@ -264,7 +343,4 @@ public class timetableview extends AppCompatActivity {
         // Update the TextView with the accumulated total hours text
         totalHoursTextView.setText(totalHoursText.toString());
     }
-
 }
-
-
