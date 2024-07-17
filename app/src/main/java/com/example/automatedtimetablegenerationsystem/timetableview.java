@@ -1,5 +1,8 @@
 package com.example.automatedtimetablegenerationsystem;
 
+import androidx.appcompat.app.AlertDialog;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.TypedValue;
@@ -13,8 +16,6 @@ import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -22,8 +23,10 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class timetableview extends AppCompatActivity {
 
@@ -102,6 +105,7 @@ public class timetableview extends AppCompatActivity {
             }
         });
     }
+
     private void addSubjectClassRow(ArrayAdapter<String> subjectAdapter) {
         LinearLayout rowLayout = new LinearLayout(this);
         rowLayout.setOrientation(LinearLayout.HORIZONTAL);
@@ -201,10 +205,10 @@ public class timetableview extends AppCompatActivity {
         });
     }
 
-
     private void generateTimetable() {
         final Map<String, String> selectedSubjects = new HashMap<>();
-        final Map<String, Map<String, Integer>> dayTimeslotHours = new HashMap<>(); // Map to store hours for each day and timeslot
+        final List<String> conflicts = new ArrayList<>();
+        final Set<String> conflictSet = new HashSet<>(); // Set to track unique conflicts
 
         // Collect selected subjects and classes
         for (int i = 0; i < repeatSubjectsContainer.getChildCount(); i++) {
@@ -215,19 +219,19 @@ public class timetableview extends AppCompatActivity {
             String subject = subjectSpinner.getSelectedItem().toString();
             String className = classSpinner.getSelectedItem().toString();
 
-            selectedSubjects.put(subject, className);
+            if (!subject.equals("Please Select") && !className.equals("Please Select class ")) {
+                String key = subject + "_" + className;
+                if (selectedSubjects.containsKey(key)) {
+                    conflicts.add("Conflict detected: " + subject + " in " + className);
+                } else {
+                    selectedSubjects.put(key, subject);
+                }
+            }
         }
 
-        // Collect current subjects and classes
-        for (int i = 0; i < currentSubjectsContainer.getChildCount(); i++) {
-            LinearLayout rowLayout = (LinearLayout) currentSubjectsContainer.getChildAt(i);
-            Spinner subjectSpinner = (Spinner) rowLayout.getChildAt(0);
-            Spinner classSpinner = (Spinner) rowLayout.getChildAt(1);
-
-            String subject = subjectSpinner.getSelectedItem().toString();
-            String className = classSpinner.getSelectedItem().toString();
-
-            selectedSubjects.put(subject, className);
+        if (!conflicts.isEmpty()) {
+            showAlert(String.join("\n", conflicts));
+            return;
         }
 
         // Clear existing timetable
@@ -244,10 +248,6 @@ public class timetableview extends AppCompatActivity {
             headerTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 8);
             headerTextView.setBackgroundColor(Color.LTGRAY);
             headerRow.addView(headerTextView);
-
-            if (!header.equals("Time")) {
-                dayTimeslotHours.put(header, new HashMap<>()); // Initialize hours map for each day
-            }
         }
         timetableTable.addView(headerRow);
 
@@ -255,7 +255,7 @@ public class timetableview extends AppCompatActivity {
         String[] timeslots = {"8:00 AM - 9:00 AM", "9:00 AM - 10:00 AM", "10:00 AM - 11:00 AM", "11:00 AM - 12:00 PM", "12:00 PM - 1:00 PM", "1:00 PM - 2:00 PM", "2:00 PM - 3:00 PM", "3:00 PM - 4:00 PM"};
 
         // Load timetable from Firebase and populate the table
-        databaseReference.child("timetable").addValueEventListener(new ValueEventListener() {
+        databaseReference.child("timetable").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (String timeslot : timeslots) {
@@ -283,15 +283,10 @@ public class timetableview extends AppCompatActivity {
                                 String dbTime = snapshot.child("time").getValue(String.class);
                                 String dbDays = snapshot.child("days").getValue(String.class);
 
-                                if (selectedSubjects.containsKey(dbSubjectName) && selectedSubjects.get(dbSubjectName).equals(dbClassName)) {
+                                if (selectedSubjects.containsKey(dbSubjectName + "_" + dbClassName)) {
                                     if (dbDays != null && dbDays.contains(day) && dbTime != null && dbTime.equals(timeslot)) {
                                         matchFound = true;
                                         dayTextView.setText(dbSubjectName + "\n" + dbClassName);
-
-                                        // Update hours for the corresponding day and timeslot
-                                        int currentHours = dayTimeslotHours.get(day).getOrDefault(timeslot, 0);
-                                        dayTimeslotHours.get(day).put(timeslot, currentHours + 1);
-
                                         break;
                                     }
                                 }
@@ -308,8 +303,37 @@ public class timetableview extends AppCompatActivity {
                     timetableTable.addView(row);
                 }
 
-                // Display total hours below the timetable
-                displayTotalHours(dayTimeslotHours);
+                // Check for conflicts based on time and days for selected subjects
+                for (int i = 0; i < repeatSubjectsContainer.getChildCount(); i++) {
+                    LinearLayout rowLayout = (LinearLayout) repeatSubjectsContainer.getChildAt(i);
+                    Spinner subjectSpinner = (Spinner) rowLayout.getChildAt(0);
+                    Spinner classSpinner = (Spinner) rowLayout.getChildAt(1);
+
+                    String subject = subjectSpinner.getSelectedItem().toString();
+                    String className = classSpinner.getSelectedItem().toString();
+
+                    if (!subject.equals("Please Select") && !className.equals("Please Select class ")) {
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            String dbSubjectName = snapshot.child("subjectName").getValue(String.class);
+                            String dbClassName = snapshot.child("classname").getValue(String.class);
+                            String dbTime = snapshot.child("time").getValue(String.class);
+                            String dbDays = snapshot.child("days").getValue(String.class);
+
+                            if (subject.equals(dbSubjectName) && className.equals(dbClassName)) {
+                                String conflictMessage = "Conflict detected: " + dbTime + " on " + dbDays;
+                                if (conflictSet.contains(conflictMessage)) {
+                                    conflicts.add("Duplicate conflict: " + conflictMessage);
+                                } else {
+                                    conflictSet.add(conflictMessage);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (!conflicts.isEmpty()) {
+                    showAlert(String.join("\n", conflicts));
+                }
             }
 
             @Override
@@ -319,49 +343,14 @@ public class timetableview extends AppCompatActivity {
         });
     }
 
-    private void displayTotalHours(Map<String, Map<String, Integer>> dayTimeslotHours) {
-        // Map to store total hours for each unique timeslot
-        Map<String, Integer> totalHoursPerTimeslot = new HashMap<>();
-
-        // Iterate through each day and timeslot to accumulate total hours
-        for (Map.Entry<String, Map<String, Integer>> dayEntry : dayTimeslotHours.entrySet()) {
-            Map<String, Integer> timeslotHours = dayEntry.getValue();
-
-            for (Map.Entry<String, Integer> timeslotEntry : timeslotHours.entrySet()) {
-                String timeslot = timeslotEntry.getKey();
-                int hours = timeslotEntry.getValue();
-
-                // Add hours to the total for this timeslot across all days
-                int currentTotalHours = totalHoursPerTimeslot.getOrDefault(timeslot, 0);
-                totalHoursPerTimeslot.put(timeslot, currentTotalHours + hours);
-            }
-        }
-
-        // Calculate the final total hours
-        int finalTotalHours = 0;
-        StringBuilder totalHoursText = new StringBuilder("Total Hours:\n");
-
-        // Construct the total hours text based on the accumulated totals per timeslot
-        for (Map.Entry<String, Integer> totalEntry : totalHoursPerTimeslot.entrySet()) {
-            String timeslot = totalEntry.getKey();
-            int totalHours = totalEntry.getValue();
-
-            // Example format: 8:00 AM - 9:00 AM is 1 hour (total)
-         //   totalHoursText.append(timeslot).append(" is ").append(totalHours).append(" hour");
-           // if (totalHours > 1) {
-               // totalHoursText.append("s"); // Pluralize if more than one hour
-          //  }
-            totalHoursText.append("\n");
-
-            // Accumulate to final total hours
-            finalTotalHours += totalHours;
-        }
-
-        // Append the final total hours
-        totalHoursText.append(finalTotalHours).append(" hours");
-
-        // Update the TextView with the accumulated total hours text including final total
-        totalHoursTextView.setText(totalHoursText.toString());
+    private void showAlert(String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Conflict Detected");
+        builder.setMessage(message);
+        builder.setPositiveButton("OK", null);
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
+
 
 }
