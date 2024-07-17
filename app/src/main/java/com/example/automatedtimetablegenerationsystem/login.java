@@ -118,12 +118,13 @@ public class login extends AppCompatActivity {
                             String nameFromDB = userSnapshot.child("name").getValue(String.class);
                             String emailFromDB = userSnapshot.child("email").getValue(String.class);
                             String matrixNumberFromDB = userSnapshot.child("matrixNumber").getValue(String.class);
-
+                            String timeFromDB = userSnapshot.child("time").getValue(String.class);
                             // Save matrixNumber to SharedPreferences
                             SharedPreferences preferences = getSharedPreferences("user_data", MODE_PRIVATE);
                             SharedPreferences.Editor editor = preferences.edit();
                             editor.putString("matrixNumber", matrixNumberFromDB); // Save matrixNumber
                             editor.putString("username", nameFromDB); // Save username
+                            editor.putString("time",timeFromDB);
                             editor.putString("email", emailFromDB); // Save email
                             editor.apply();
 

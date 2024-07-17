@@ -2,17 +2,10 @@ package com.example.automatedtimetablegenerationsystem;
 
 public class signupClass {
     String name,email,password;
-    String matrixNumber;
+    String matrixNumber,time;
     public signupClass() {
     }
 
-
-    public signupClass(String name, String email, String password, String matrixNumber) {
-        this.name = name;
-        this.email = email;
-        this.password = password;
-        this.matrixNumber = matrixNumber;
-    }
     public String getName() {
         return name;
     }
@@ -45,4 +38,19 @@ public class signupClass {
         this.matrixNumber = matrixNumber;
     }
 
+    public String getTime() {
+        return time;
+    }
+
+    public void setTime(String time) {
+        this.time = time;
+    }
+
+    public signupClass(String email, String name, String password, String matrixNumber, String time) {
+        this.email = email;
+        this.name = name;
+        this.password = password;
+        this.matrixNumber = matrixNumber;
+        this.time = time;
+    }
 }

@@ -65,13 +65,38 @@ public class userhomeFragment extends Fragment {
         // Load username from SharedPreferences
         SharedPreferences preferences = requireContext().getSharedPreferences("user_data", requireContext().MODE_PRIVATE);
         String username = preferences.getString("username", "Default Name");
+        // Get reference to "logout_times" table in Firebase
+        DatabaseReference logoutTimesRef = FirebaseDatabase.getInstance().getReference().child("logout_times").child(username);
+
+        logoutTimesRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                // Check if dataSnapshot exists and has a value
+                if (dataSnapshot.exists()) {
+                    String logoutTime = dataSnapshot.getValue(String.class);
+                    ftime.setText(logoutTime);
+
+                } else {
+                    // Handle case where no data exists for the username (should not happen if user has logged out properly)
+                  //  Log.d("LogoutTime", "No logout time found for " + username);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                // Handle potential errors
+               // Log.e("Firebase", "Error fetching logout time for " + username + ": " + databaseError.getMessage());
+            }
+        });
+
+
         fname.setText(username); // Set username to fname TextView
         String firstLetter = username.substring(0, 1);
         fletter.setText(firstLetter);
         Calendar calendar = Calendar.getInstance();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String currentDateTime = sdf.format(calendar.getTime());
-        ftime.setText(currentDateTime);
+
         // Initialize Spinners with adapters
         ArrayAdapter<String> semesterAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, semesters);
         semesterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
