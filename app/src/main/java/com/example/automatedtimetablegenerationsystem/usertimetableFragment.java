@@ -1,6 +1,7 @@
 package com.example.automatedtimetablegenerationsystem;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -91,11 +92,13 @@ public class usertimetableFragment extends Fragment {
                 int selectedCount = Integer.parseInt(spinnerCount.getSelectedItem().toString());
                 String selectedCurrentSemester = spinnerSemester.getSelectedItem().toString();
                 selectedProgram = spinnerProgram.getSelectedItem().toString();
-
+                SharedPreferences preferences = requireContext().getSharedPreferences("user_data", requireContext().MODE_PRIVATE);
+                String username = preferences.getString("username", "Default Name");
                 Intent intent = new Intent(requireContext(), timetableview.class);
                 intent.putExtra("selectedCount", selectedCount);
                 intent.putExtra("selectedCurrentSemester", selectedCurrentSemester);
                 intent.putExtra("selectedProgram", selectedProgram);
+                intent.putExtra("username", username);
                 startActivity(intent);
             }
         });

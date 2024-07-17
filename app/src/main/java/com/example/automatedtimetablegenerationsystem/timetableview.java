@@ -3,6 +3,9 @@ package com.example.automatedtimetablegenerationsystem;
 import androidx.appcompat.app.AlertDialog;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.TypedValue;
@@ -16,11 +19,17 @@ import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,8 +45,8 @@ public class timetableview extends AppCompatActivity {
     private DatabaseReference databaseReference;
     private int selectedCount;
     private String selectedCurrentSemester;
-    private String selectedProgram;
-    private Button addSubjectsButton;
+    private String selectedProgram,user;
+    private Button addSubjectsButton,savebtns;
     private ImageView addCurrentSubjectsButton;
     private TextView totalHoursTextView;
 
@@ -51,12 +60,13 @@ public class timetableview extends AppCompatActivity {
         timetableTable = findViewById(R.id.timetableTable);
         totalHoursTextView = findViewById(R.id.totalHoursTextView);
         addSubjectsButton = findViewById(R.id.addSubjectsButton);
+        savebtns = findViewById(R.id.savebtns);
         addCurrentSubjectsButton = findViewById(R.id.addCurrentSubjectsButton);
 
         selectedCount = getIntent().getIntExtra("selectedCount", 0);
         selectedCurrentSemester = getIntent().getStringExtra("selectedCurrentSemester");
         selectedProgram = getIntent().getStringExtra("selectedProgram");
-
+        user = getIntent().getStringExtra("username");
         databaseReference = FirebaseDatabase.getInstance().getReference();
 
         // Add spinners for selecting subjects and classes based on the selected count
@@ -204,15 +214,36 @@ public class timetableview extends AppCompatActivity {
             }
         });
     }
-
     private void generateTimetable() {
         final Map<String, String> selectedSubjects = new HashMap<>();
         final List<String> conflicts = new ArrayList<>();
         final Set<String> conflictSet = new HashSet<>(); // Set to track unique conflicts
 
-        // Collect selected subjects and classes
+        // Map to store day-wise timeslot hours
+        final Map<String, Map<String, Integer>> dayTimeslotHours = new HashMap<>();
+
+        // Collect selected subjects and classes from repeatSubjectsContainer
         for (int i = 0; i < repeatSubjectsContainer.getChildCount(); i++) {
             LinearLayout rowLayout = (LinearLayout) repeatSubjectsContainer.getChildAt(i);
+            Spinner subjectSpinner = (Spinner) rowLayout.getChildAt(0);
+            Spinner classSpinner = (Spinner) rowLayout.getChildAt(1);
+
+            String subject = subjectSpinner.getSelectedItem().toString();
+            String className = classSpinner.getSelectedItem().toString();
+
+            if (!subject.equals("Please Select") && !className.equals("Please Select class ")) {
+                String key = subject + "_" + className;
+                if (selectedSubjects.containsKey(key)) {
+                    conflicts.add("Conflict detected: " + subject + " in " + className);
+                } else {
+                    selectedSubjects.put(key, subject);
+                }
+            }
+        }
+
+        // Collect selected subjects and classes from currentSubjectsContainer
+        for (int i = 0; i < currentSubjectsContainer.getChildCount(); i++) {
+            LinearLayout rowLayout = (LinearLayout) currentSubjectsContainer.getChildAt(i);
             Spinner subjectSpinner = (Spinner) rowLayout.getChildAt(0);
             Spinner classSpinner = (Spinner) rowLayout.getChildAt(1);
 
@@ -245,7 +276,7 @@ public class timetableview extends AppCompatActivity {
             headerTextView.setText(header);
             headerTextView.setPadding(8, 8, 8, 8);
             headerTextView.setGravity(Gravity.CENTER);
-            headerTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 8);
+            headerTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
             headerTextView.setBackgroundColor(Color.LTGRAY);
             headerRow.addView(headerTextView);
         }
@@ -264,7 +295,7 @@ public class timetableview extends AppCompatActivity {
                     timeTextView.setText(timeslot);
                     timeTextView.setPadding(8, 8, 8, 8);
                     timeTextView.setGravity(Gravity.CENTER);
-                    timeTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 8);
+                    timeTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);
                     row.addView(timeTextView);
 
                     for (String day : headers) {
@@ -287,6 +318,18 @@ public class timetableview extends AppCompatActivity {
                                     if (dbDays != null && dbDays.contains(day) && dbTime != null && dbTime.equals(timeslot)) {
                                         matchFound = true;
                                         dayTextView.setText(dbSubjectName + "\n" + dbClassName);
+
+                                        // Calculate hours and store in dayTimeslotHours map
+                                        int hours = 1; // Assuming each slot is 1 hour
+                                        if (dayTimeslotHours.containsKey(day)) {
+                                            Map<String, Integer> timeslotHours = dayTimeslotHours.get(day);
+                                            timeslotHours.put(timeslot, timeslotHours.getOrDefault(timeslot, 0) + hours);
+                                        } else {
+                                            Map<String, Integer> timeslotHours = new HashMap<>();
+                                            timeslotHours.put(timeslot, hours);
+                                            dayTimeslotHours.put(day, timeslotHours);
+                                        }
+
                                         break;
                                     }
                                 }
@@ -302,6 +345,9 @@ public class timetableview extends AppCompatActivity {
 
                     timetableTable.addView(row);
                 }
+
+                // Display total hours
+                displayTotalHours(dayTimeslotHours,selectedCurrentSemester);
 
                 // Check for conflicts based on time and days for selected subjects
                 for (int i = 0; i < repeatSubjectsContainer.getChildCount(); i++) {
@@ -333,6 +379,9 @@ public class timetableview extends AppCompatActivity {
 
                 if (!conflicts.isEmpty()) {
                     showAlert(String.join("\n", conflicts));
+                }else {
+
+                    //saveTimetableToFirebase(user, dayTimeslotHours);
                 }
             }
 
@@ -341,6 +390,61 @@ public class timetableview extends AppCompatActivity {
                 // Handle error
             }
         });
+    }
+    private void displayTotalHours(Map<String, Map<String, Integer>> dayTimeslotHours,String selectedCurrentSemester) {
+        // Map to store total hours for each unique timeslot
+        Map<String, Integer> totalHoursPerTimeslot = new HashMap<>();
+
+        // Iterate through each day and timeslot to accumulate total hours
+        for (Map.Entry<String, Map<String, Integer>> dayEntry : dayTimeslotHours.entrySet()) {
+            Map<String, Integer> timeslotHours = dayEntry.getValue();
+
+            for (Map.Entry<String, Integer> timeslotEntry : timeslotHours.entrySet()) {
+                String timeslot = timeslotEntry.getKey();
+                int hours = timeslotEntry.getValue();
+
+                // Add hours to the total for this timeslot across all days
+                int currentTotalHours = totalHoursPerTimeslot.getOrDefault(timeslot, 0);
+                totalHoursPerTimeslot.put(timeslot, currentTotalHours + hours);
+            }
+        }
+
+        // Calculate the final total hours
+        int finalTotalHours = 0;
+        StringBuilder totalHoursText = new StringBuilder("Total Hours:\n");
+
+        // Construct the total hours text based on the accumulated totals per timeslot
+        for (Map.Entry<String, Integer> totalEntry : totalHoursPerTimeslot.entrySet()) {
+            String timeslot = totalEntry.getKey();
+            int totalHours = totalEntry.getValue();
+
+          //  totalHoursText.append(timeslot).append(" is ").append(totalHours).append(" hour");
+//            if (totalHours > 1) {
+//                totalHoursText.append("s"); // Pluralize if more than one hour
+//            }
+            totalHoursText.append("\n");
+
+            // Accumulate to final total hours
+            finalTotalHours += totalHours;
+        }
+
+        // Append the final total hours
+        totalHoursText.append(finalTotalHours).append(" hours");
+
+        // Check if total hours exceed 20 and show alert if true
+        if(selectedCurrentSemester == "S5"){
+            if (finalTotalHours > 21) {
+                showAlerterror("Total hours cannot exceed 21 hours.");
+            }
+        }else{
+            if (finalTotalHours > 18) {
+                showAlerterror("Total hours cannot exceed 18 hours.");
+            }
+        }
+
+
+        // Update the TextView with the accumulated total hours text including final total
+        totalHoursTextView.setText(totalHoursText.toString());
     }
 
     private void showAlert(String message) {
@@ -352,5 +456,16 @@ public class timetableview extends AppCompatActivity {
         dialog.show();
     }
 
+    private void showAlerterror(String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Error");
+        builder.setMessage(message);
+        builder.setPositiveButton("OK", null);
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
 
 }
+
+
+
