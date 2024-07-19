@@ -23,6 +23,8 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -60,7 +62,6 @@ public class timetableview extends AppCompatActivity {
         timetableTable = findViewById(R.id.timetableTable);
         totalHoursTextView = findViewById(R.id.totalHoursTextView);
         addSubjectsButton = findViewById(R.id.addSubjectsButton);
-        savebtns = findViewById(R.id.savebtns);
         addCurrentSubjectsButton = findViewById(R.id.addCurrentSubjectsButton);
 
         selectedCount = getIntent().getIntExtra("selectedCount", 0);
@@ -214,12 +215,16 @@ public class timetableview extends AppCompatActivity {
             }
         });
     }
+    private static final String DOCUMENT_ID = "123456789";
+
     private void generateTimetable() {
         final Map<String, String> selectedSubjects = new HashMap<>();
         final List<String> conflicts = new ArrayList<>();
-        final Set<String> conflictSet = new HashSet<>(); // Set to track unique conflicts
+        final Set<String> conflictSet = new HashSet<>();
 
-        // Map to store day-wise timeslot hours
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        String userName = user != null ? user.getDisplayName() : "Anonymous";
+
         final Map<String, Map<String, Integer>> dayTimeslotHours = new HashMap<>();
 
         // Collect selected subjects and classes from repeatSubjectsContainer
@@ -265,10 +270,8 @@ public class timetableview extends AppCompatActivity {
             return;
         }
 
-        // Clear existing timetable
         timetableTable.removeAllViews();
 
-        // Create table headers
         TableRow headerRow = new TableRow(this);
         String[] headers = {"Time", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"};
         for (String header : headers) {
@@ -282,10 +285,8 @@ public class timetableview extends AppCompatActivity {
         }
         timetableTable.addView(headerRow);
 
-        // Define timetable timeslots
         String[] timeslots = {"8:00 AM - 9:00 AM", "9:00 AM - 10:00 AM", "10:00 AM - 11:00 AM", "11:00 AM - 12:00 PM", "12:00 PM - 1:00 PM", "1:00 PM - 2:00 PM", "2:00 PM - 3:00 PM", "3:00 PM - 4:00 PM"};
 
-        // Load timetable from Firebase and populate the table
         databaseReference.child("timetable").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -305,7 +306,7 @@ public class timetableview extends AppCompatActivity {
                             dayTextView.setGravity(Gravity.CENTER);
                             dayTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);
                             dayTextView.setBackgroundColor(Color.WHITE);
-                            dayTextView.setText(""); // Empty cell, can be updated later
+                            dayTextView.setText("");
 
                             boolean matchFound = false;
                             for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
@@ -319,8 +320,7 @@ public class timetableview extends AppCompatActivity {
                                         matchFound = true;
                                         dayTextView.setText(dbSubjectName + "\n" + dbClassName);
 
-                                        // Calculate hours and store in dayTimeslotHours map
-                                        int hours = 1; // Assuming each slot is 1 hour
+                                        int hours = 1;
                                         if (dayTimeslotHours.containsKey(day)) {
                                             Map<String, Integer> timeslotHours = dayTimeslotHours.get(day);
                                             timeslotHours.put(timeslot, timeslotHours.getOrDefault(timeslot, 0) + hours);
@@ -346,10 +346,8 @@ public class timetableview extends AppCompatActivity {
                     timetableTable.addView(row);
                 }
 
-                // Display total hours
-                displayTotalHours(dayTimeslotHours,selectedCurrentSemester);
+                displayTotalHours(dayTimeslotHours, selectedCurrentSemester);
 
-                // Check for conflicts based on time and days for selected subjects
                 for (int i = 0; i < repeatSubjectsContainer.getChildCount(); i++) {
                     LinearLayout rowLayout = (LinearLayout) repeatSubjectsContainer.getChildAt(i);
                     Spinner subjectSpinner = (Spinner) rowLayout.getChildAt(0);
@@ -379,9 +377,8 @@ public class timetableview extends AppCompatActivity {
 
                 if (!conflicts.isEmpty()) {
                     showAlert(String.join("\n", conflicts));
-                }else {
-
-                    //saveTimetableToFirebase(user, dayTimeslotHours);
+                } else {
+                    saveTimetableToFirebase(userName, selectedSubjects);
                 }
             }
 
@@ -391,6 +388,29 @@ public class timetableview extends AppCompatActivity {
             }
         });
     }
+    private void saveTimetableToFirebase(String userName, Map<String, String> selectedSubjects) {
+        DatabaseReference viewSubjectRef = FirebaseDatabase.getInstance().getReference().child("viewsubject").child(DOCUMENT_ID);
+        Map<String, Object> data = new HashMap<>();
+        data.put("user", userName);
+        for (Map.Entry<String, String> entry : selectedSubjects.entrySet()) {
+            String key = entry.getKey();
+            String subject = entry.getValue();
+            data.put(key, subject);
+        }
+        viewSubjectRef.setValue(data);
+    }
+
+
+
+    private int getIndex(Spinner spinner, String value) {
+        for (int i = 0; i < spinner.getCount(); i++) {
+            if (spinner.getItemAtPosition(i).toString().equals(value)) {
+                return i;
+            }
+        }
+        return 0; // Default to the first item
+    }
+
     private void displayTotalHours(Map<String, Map<String, Integer>> dayTimeslotHours,String selectedCurrentSemester) {
         // Map to store total hours for each unique timeslot
         Map<String, Integer> totalHoursPerTimeslot = new HashMap<>();

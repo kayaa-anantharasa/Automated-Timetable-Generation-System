@@ -3,8 +3,10 @@
     xmlns:tools="http://schemas.android.com/tools" >
     <uses-permission android:name="android.permission.INTERNET"/>
 
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
+
 
     <application
         android:allowBackup="true"
@@ -16,13 +18,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AutomatedTimetableGenerationSystem"
         tools:targetApi="31" >
+
+        <activity android:name=".generatetimetableview" />
         <activity
             android:name=".timetableview"
             android:exported="false" />
-        <activity
-            android:name=".usertimetableView"
-            android:exported="false"
-            android:theme="@style/Theme.AutomatedTimetableGenerationSystem" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -50,10 +50,6 @@
         <activity
             android:name=".GenerateTimeTable"
             android:exported="false" />
-        <activity
-            android:name=".usereditFragment"
-            android:exported="false"
-            android:theme="@style/Theme.AutomatedTimetableGenerationSystem" />
         <activity
             android:name=".login"
             android:exported="false"
