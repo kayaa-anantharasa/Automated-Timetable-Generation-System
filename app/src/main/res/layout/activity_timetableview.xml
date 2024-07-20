@@ -72,7 +72,9 @@
                 android:layout_marginTop="16dp"
                 android:layout_marginLeft="90dp"
                 android:text="Generate Timetable" />
-
+            <HorizontalScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
             <TableLayout
                 android:id="@+id/timetableTable"
                 android:layout_width="match_parent"
@@ -82,6 +84,7 @@
                 android:showDividers="middle"
                 android:divider="@drawable/table_divider">
             </TableLayout>
+            </HorizontalScrollView>
         </LinearLayout>
     </ScrollView>
 
