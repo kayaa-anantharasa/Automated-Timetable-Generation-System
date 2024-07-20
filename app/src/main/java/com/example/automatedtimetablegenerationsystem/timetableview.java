@@ -221,9 +221,9 @@ public class timetableview extends AppCompatActivity {
         final Map<String, String> selectedSubjects = new HashMap<>();
         final List<String> conflicts = new ArrayList<>();
         final Set<String> conflictSet = new HashSet<>();
-
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        String userName = user != null ? user.getDisplayName() : "Anonymous";
+//
+//        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+//        String userName = user != null ? user.getDisplayName() : "Anonymous";
 
         final Map<String, Map<String, Integer>> dayTimeslotHours = new HashMap<>();
 
@@ -378,7 +378,7 @@ public class timetableview extends AppCompatActivity {
                 if (!conflicts.isEmpty()) {
                     showAlert(String.join("\n", conflicts));
                 } else {
-                    saveTimetableToFirebase(userName, selectedSubjects);
+                    saveTimetableToFirebase(user, selectedSubjects);
                 }
             }
 
@@ -389,17 +389,46 @@ public class timetableview extends AppCompatActivity {
         });
     }
     private void saveTimetableToFirebase(String userName, Map<String, String> selectedSubjects) {
-        DatabaseReference viewSubjectRef = FirebaseDatabase.getInstance().getReference().child("viewsubject").child(DOCUMENT_ID);
-        Map<String, Object> data = new HashMap<>();
-        data.put("user", userName);
-        for (Map.Entry<String, String> entry : selectedSubjects.entrySet()) {
-            String key = entry.getKey();
-            String subject = entry.getValue();
-            data.put(key, subject);
-        }
-        viewSubjectRef.setValue(data);
-    }
+        DatabaseReference viewSubjectRef = FirebaseDatabase.getInstance().getReference().child("viewsubject").child(userName);
 
+        // Prepare data to be saved
+        Map<String, Object> data = new HashMap<>();
+     //   data.put("user", userName);
+
+        // Iterate through selected subjects and classes
+        for (Map.Entry<String, String> entry : selectedSubjects.entrySet()) {
+            String key = entry.getKey(); // Format: subjectName_className
+            String subject = entry.getValue();
+
+            // Split key to extract subjectName and className
+            String[] parts = key.split("_");
+            String subjectName = parts[0];
+            String className = parts[1];
+
+            // Create a nested map for each subject and class
+            Map<String, String> subjectData = new HashMap<>();
+           // subjectData.put("subject", subjectName);
+            subjectData.put("class", className);
+
+            // Add subject data under its key in Firebase
+            data.put(subject, subjectData);
+        }
+
+        // Save data to Firebase
+        viewSubjectRef.setValue(data)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Toast.makeText(timetableview.this, "Timetable saved successfully", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(timetableview.this, "Failed to save timetable: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
 
 
     private int getIndex(Spinner spinner, String value) {

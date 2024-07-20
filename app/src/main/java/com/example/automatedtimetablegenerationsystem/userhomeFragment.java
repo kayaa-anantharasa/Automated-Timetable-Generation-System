@@ -40,13 +40,14 @@ public class userhomeFragment extends Fragment {
     private Spinner spinnerProgram;
     private Spinner spinnerclass;
     private String[] semesters = {"S1", "S2", "S3", "S4", "S5"};
-
+    String selectedSemester;
     private Button showTimetableButton;
+    private Button ViewTimetable;
     private ProgressBar progressBar;
     private DatabaseReference timetableRef;
     private List<TimetableEntry> timetableData = new ArrayList<>();
-    private TextView fname,fletter,ftime; // TextView to display username
-
+    private TextView fname, fletter, ftime; // TextView to display username
+    String username ;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -54,17 +55,19 @@ public class userhomeFragment extends Fragment {
 
         // Initialize Views
         fname = view.findViewById(R.id.name);
-        fletter= view.findViewById(R.id.firstletter);
-        ftime= view.findViewById(R.id.time);
+        fletter = view.findViewById(R.id.firstletter);
+        ftime = view.findViewById(R.id.time);
         spinnerSemester = view.findViewById(R.id.semesters);
         spinnerProgram = view.findViewById(R.id.program);
         spinnerclass = view.findViewById(R.id.classname);
         progressBar = view.findViewById(R.id.progressBar);
         showTimetableButton = view.findViewById(R.id.showtimetable);
+        ViewTimetable = view.findViewById(R.id.ViewTimetable);
 
         // Load username from SharedPreferences
         SharedPreferences preferences = requireContext().getSharedPreferences("user_data", requireContext().MODE_PRIVATE);
-        String username = preferences.getString("username", "Default Name");
+         username = preferences.getString("username", "Default Name");
+
         // Get reference to "logout_times" table in Firebase
         DatabaseReference logoutTimesRef = FirebaseDatabase.getInstance().getReference().child("logout_times").child(username);
 
@@ -78,17 +81,16 @@ public class userhomeFragment extends Fragment {
 
                 } else {
                     // Handle case where no data exists for the username (should not happen if user has logged out properly)
-                  //  Log.d("LogoutTime", "No logout time found for " + username);
+                    // Log.d("LogoutTime", "No logout time found for " + username);
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 // Handle potential errors
-               // Log.e("Firebase", "Error fetching logout time for " + username + ": " + databaseError.getMessage());
+                // Log.e("Firebase", "Error fetching logout time for " + username + ": " + databaseError.getMessage());
             }
         });
-
 
         fname.setText(username); // Set username to fname TextView
         String firstLetter = username.substring(0, 1);
@@ -151,14 +153,144 @@ public class userhomeFragment extends Fragment {
         showTimetableButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String selectedSemester = spinnerSemester.getSelectedItem().toString();
+                 selectedSemester = spinnerSemester.getSelectedItem().toString();
                 String selectedProgram = spinnerProgram.getSelectedItem().toString();
                 String selectedClass = spinnerclass.getSelectedItem().toString();
                 fetchTimetable(selectedSemester, selectedProgram, selectedClass);
             }
         });
+        ViewTimetable.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String username = fname.getText().toString().trim(); // Get the username
+                String semester = "S3"; // Example semester, adjust as needed
+
+                // Fetch data from viewsubject based on username
+                DatabaseReference viewSubjectRef = FirebaseDatabase.getInstance().getReference()
+                        .child("viewsubject").child(username);
+
+                viewSubjectRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.exists()) {
+                            List<String> subjects = new ArrayList<>();
+                            List<String> classes = new ArrayList<>();
+
+                            // Collect all subjects and classes associated with the username
+                            for (DataSnapshot subjectSnapshot : dataSnapshot.getChildren()) {
+                                String subjectName = subjectSnapshot.getKey(); // Get the subject name (e.g., BUSINESS INTELLIGENCE)
+                                String className = subjectSnapshot.child("class").getValue(String.class);
+
+                                if (className != null) {
+                                    subjects.add(subjectName);
+                                    classes.add(className);
+                                }
+                            }
+
+                            if (!subjects.isEmpty()) {
+                                // Data found, fetch timetable data for the semester and display together
+                                fetchTimetableForAllSubjects(semester, subjects, classes);
+                            } else {
+                                Toast.makeText(requireContext(), "No subjects found for " + username, Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            Toast.makeText(requireContext(), "No data found for " + username, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                        Toast.makeText(requireContext(), "Failed to fetch data: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
+
 
         return view;
+    }
+    private void fetchTimetableForAllSubjects(String semester, List<String> subjects, List<String> classes) {
+        progressBar.setVisibility(View.VISIBLE);
+        timetableRef = FirebaseDatabase.getInstance().getReference().child("timetable");
+
+        timetableRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                progressBar.setVisibility(View.GONE);
+                if (snapshot.exists()) {
+                    List<TimetableEntry> timetableData = new ArrayList<>();
+
+                    for (DataSnapshot timetableSnapshot : snapshot.getChildren()) {
+                        String entrySemester = timetableSnapshot.child("semi").getValue(String.class);
+                        String entrySubject = timetableSnapshot.child("subjectName").getValue(String.class);
+                        String entryClassname = timetableSnapshot.child("classname").getValue(String.class);
+
+                        if (entrySemester != null && entrySubject != null && entryClassname != null &&
+                                entrySemester.equals(semester) && subjects.contains(entrySubject) && classes.contains(entryClassname)) {
+                            TimetableEntry timetableEntry = timetableSnapshot.getValue(TimetableEntry.class);
+                            if (timetableEntry != null) {
+                                timetableData.add(timetableEntry);
+                            }
+                        }
+                    }
+
+                    if (!timetableData.isEmpty()) {
+                        Toast.makeText(requireContext(), "Timetable loaded for " + semester, Toast.LENGTH_SHORT).show();
+                        showTimetableDialog(timetableData);
+                    } else {
+                        Toast.makeText(requireContext(), "No timetable found for " + semester, Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(requireContext(), "No timetable data available", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                progressBar.setVisibility(View.GONE);
+                Toast.makeText(requireContext(), "Failed to load timetable: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void fetchTimetable1(String semester, String subject, String classname) {
+        progressBar.setVisibility(View.VISIBLE);
+        timetableRef = FirebaseDatabase.getInstance().getReference().child("timetable");
+        timetableRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                progressBar.setVisibility(View.GONE);
+                if (snapshot.exists()) {
+                    timetableData.clear(); // Clear previous data
+                    for (DataSnapshot timetableSnapshot : snapshot.getChildren()) {
+//                        String entrySemester = timetableSnapshot.child("semi").getValue(String.class);
+                        String entrySubject = timetableSnapshot.child("subjectName").getValue(String.class);
+                        String entryClassname = timetableSnapshot.child("classname").getValue(String.class);
+                        if ( entrySubject != null && entryClassname != null &&
+                               entrySubject.equals(subject) && entryClassname.equals(classname)) {
+                            TimetableEntry timetableEntry = timetableSnapshot.getValue(TimetableEntry.class);
+                            if (timetableEntry != null) {
+                                timetableData.add(timetableEntry);
+                            }
+                        }
+                    }
+                    if (!timetableData.isEmpty()) {
+                        Toast.makeText(requireContext(), "Timetable loaded for " + semester + " - " + subject, Toast.LENGTH_SHORT).show();
+                        showTimetableDialog(timetableData);
+                    } else {
+                        Toast.makeText(requireContext(), "No timetable found for " + semester + " - " + username, Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(requireContext(), "No timetable data available", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                progressBar.setVisibility(View.GONE);
+                Toast.makeText(requireContext(), "Failed to load timetable: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void fetchTimetable(String semester, String program, String classname) {
