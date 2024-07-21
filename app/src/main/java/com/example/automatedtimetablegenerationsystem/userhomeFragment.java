@@ -2,9 +2,18 @@ package com.example.automatedtimetablegenerationsystem;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.graphics.pdf.PdfDocument;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +28,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 
 import com.google.firebase.database.DataSnapshot;
@@ -27,6 +37,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -35,6 +48,8 @@ import java.util.List;
 import java.util.Map;
 
 public class userhomeFragment extends Fragment {
+    private List<String> subjects; // Define these appropriately
+    private List<String> classes;  // Define these appropriately
 
     private Spinner spinnerSemester;
     private Spinner spinnerProgram;
@@ -43,6 +58,7 @@ public class userhomeFragment extends Fragment {
     String selectedSemester;
     private Button showTimetableButton;
     private Button ViewTimetable;
+    private Button PdfTimetable;
     private ProgressBar progressBar;
     private DatabaseReference timetableRef;
     private List<TimetableEntry> timetableData = new ArrayList<>();
@@ -63,7 +79,7 @@ public class userhomeFragment extends Fragment {
         progressBar = view.findViewById(R.id.progressBar);
         showTimetableButton = view.findViewById(R.id.showtimetable);
         ViewTimetable = view.findViewById(R.id.ViewTimetable);
-
+        PdfTimetable = view.findViewById(R.id.savePdf);
         // Load username from SharedPreferences
         SharedPreferences preferences = requireContext().getSharedPreferences("user_data", requireContext().MODE_PRIVATE);
          username = preferences.getString("username", "Default Name");
@@ -162,7 +178,7 @@ public class userhomeFragment extends Fragment {
         ViewTimetable.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String username = fname.getText().toString().trim(); // Get the username
+
                 String semester = "S3"; // Example semester, adjust as needed
 
                 // Fetch data from viewsubject based on username
@@ -205,10 +221,271 @@ public class userhomeFragment extends Fragment {
                 });
             }
         });
+        PdfTimetable.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String username = fname.getText().toString().trim(); // Assuming fname is an EditText for username
+                String semester = "S3"; // Example semester, adjust as needed
+
+                // Fetch data from viewsubject based on username
+                DatabaseReference viewSubjectRef = FirebaseDatabase.getInstance().getReference()
+                        .child("viewsubject").child(username);
+
+                viewSubjectRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.exists()) {
+                            List<String> subjects = new ArrayList<>();
+                            List<String> classes = new ArrayList<>();
+
+                            // Collect all subjects and classes associated with the username
+                            for (DataSnapshot subjectSnapshot : dataSnapshot.getChildren()) {
+                                String subjectName = subjectSnapshot.getKey(); // Get the subject name
+                                String className = subjectSnapshot.child("class").getValue(String.class);
+
+                                if (className != null) {
+                                    subjects.add(subjectName);
+                                    classes.add(className);
+                                }
+                            }
+
+                            if (!subjects.isEmpty()) {
+                                // Data found, generate PDF timetable
+                                generatePdf(username, semester, subjects, classes);
+                            } else {
+                                Toast.makeText(requireContext(), "No subjects found for " + username, Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            Toast.makeText(requireContext(), "No data found for " + username, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                        Toast.makeText(requireContext(), "Failed to fetch data: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
+
+
 
 
         return view;
     }
+    private void generatePdf(String username, String semester, List<String> subjects, List<String> classes) {
+        // Create a new PdfDocument
+        PdfDocument document = new PdfDocument();
+        PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(300, 600, 1).create();
+        PdfDocument.Page page = document.startPage(pageInfo);
+        Canvas canvas = page.getCanvas();
+        Paint paint = new Paint();
+
+        // Fetch timetable data based on subjects and classes
+        fetchTimetableData(subjects, classes, new TimetableDataCallback() {
+            @Override
+            public void onTimetableDataReceived(List<TimetableEntry> timetableData) {
+                // Create timetable content for PDF
+                Map<String, Map<String, List<TimetableEntry>>> timetableMap = createTimetableContent(timetableData, subjects, classes);
+                // Draw timetable content on PDF canvas
+                drawTimetable(canvas, timetableMap);
+                // Finish the page
+                document.finishPage(page);
+
+                // Save the PDF file
+                File pdfFile = new File(requireContext().getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), username + "_timetable.pdf");
+                try {
+                    // Create parent directories if they don't exist
+                    pdfFile.getParentFile().mkdirs();
+                    // Write the document content to the file
+                    document.writeTo(new FileOutputStream(pdfFile));
+                    Toast.makeText(requireContext(), "PDF saved successfully: " + pdfFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
+
+                    // View the PDF using an Intent
+                    Uri pdfUri = FileProvider.getUriForFile(requireContext(),
+                            requireContext().getApplicationContext().getPackageName() + ".provider", pdfFile);
+                    Intent pdfIntent = new Intent(Intent.ACTION_VIEW);
+                    pdfIntent.setDataAndType(pdfUri, "application/pdf");
+                    pdfIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    startActivity(pdfIntent);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Toast.makeText(requireContext(), "Failed to save PDF: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                } finally {
+                    // Close the document
+                    document.close();
+                }
+            }
+
+            @Override
+            public void onTimetableDataError(String errorMessage) {
+                Toast.makeText(requireContext(), "Failed to fetch timetable data: " + errorMessage, Toast.LENGTH_SHORT).show();
+                // Close the document in case of error
+                document.close();
+            }
+        });
+    }
+    private void drawTimetable(Canvas canvas, Map<String, Map<String, List<TimetableEntry>>> timetableMap) {
+        Paint paint = new Paint();
+        paint.setTextSize(30); // Text size for timetable entries
+        int startX = 50; // Starting X coordinate
+        int startY = 100; // Starting Y coordinate
+        int columnWidth = 300; // Width of each column (for days)
+        int rowHeight = 100; // Height of each row (for time slots)
+
+        String[] days = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"};
+        String[] timeSlots = getTimeSlots();
+
+        // Draw headers for days
+        int x = startX + columnWidth;
+        int y = startY + rowHeight;
+        for (String day : days) {
+            // Draw day header
+            paint.setColor(Color.WHITE);
+            canvas.drawRect(x, startY, x + columnWidth, startY + rowHeight, paint);
+            paint.setColor(Color.BLACK);
+            paint.setStyle(Paint.Style.FILL);
+            canvas.drawText(day, x + 20, startY + 70, paint);
+            x += columnWidth;
+        }
+
+        // Draw headers for time slots
+        x = startX;
+        y = startY + rowHeight;
+        for (String timeSlot : timeSlots) {
+            // Draw time slot header
+            paint.setColor(Color.WHITE);
+            canvas.drawRect(startX, y, startX + columnWidth, y + rowHeight, paint);
+            paint.setColor(Color.BLACK);
+            paint.setStyle(Paint.Style.FILL);
+            canvas.drawText(timeSlot, startX + 20, y + 70, paint);
+            y += rowHeight;
+        }
+
+        // Draw timetable entries
+        x = startX + columnWidth;
+        for (String timeSlot : timeSlots) {
+            y = startY + rowHeight;
+
+            for (String day : days) {
+                paint.setColor(Color.WHITE);
+                canvas.drawRect(x, y, x + columnWidth, y + rowHeight, paint);
+                paint.setColor(Color.BLACK);
+                paint.setStyle(Paint.Style.FILL);
+
+                // Get timetable entries for the current day and time slot
+                List<TimetableEntry> entries = timetableMap.get(day).get(timeSlot);
+
+                // Calculate text height for multiline entries
+                int textHeight = calculateTextHeight(paint, entries);
+
+                // Draw each timetable entry under the respective day and time slot
+                if (entries != null && !entries.isEmpty()) {
+                    StringBuilder entryText = new StringBuilder();
+                    for (TimetableEntry entry : entries) {
+                        entryText.append(String.format("%s\n%s\n%s\n\n", entry.getSubjectName(), entry.getLecturer(), entry.getClassname()));
+                    }
+                    canvas.drawText(entryText.toString(), x + 20, y + 70 + textHeight, paint);
+                } else {
+                    // If no class, indicate "No Class" under the respective day and time slot
+                    canvas.drawText("No Class", x + 20, y + 70 + textHeight, paint);
+                }
+
+                x += columnWidth; // Move to the next column for the next day
+            }
+
+            x = startX + columnWidth; // Reset X coordinate for the next time slot row
+            y += rowHeight; // Move to the next row for the next time slot
+        }
+    }
+
+    private int calculateTextHeight(Paint paint, List<TimetableEntry> entries) {
+        if (entries == null || entries.isEmpty()) {
+            return 0;
+        }
+
+        // Calculate height for multiline text
+        String sampleText = entries.get(0).getSubjectName() + "\n" + entries.get(0).getLecturer() + "\n" + entries.get(0).getClassname();
+        Rect bounds = new Rect();
+        paint.getTextBounds(sampleText, 0, sampleText.length(), bounds);
+        return bounds.height();
+    }
+
+    private Map<String, Map<String, List<TimetableEntry>>> createTimetableContent(List<TimetableEntry> timetableData, List<String> subjects, List<String> classes) {
+        // Initialize timetable map with empty slots for each day and time slot
+        Map<String, Map<String, List<TimetableEntry>>> timetableMap = new HashMap<>();
+        String[] days = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"};
+
+        // Initialize the timetable map with empty lists for each day and time slot
+        for (String day : days) {
+            timetableMap.put(day, new HashMap<>());
+            for (String timeSlot : getTimeSlots()) {
+                timetableMap.get(day).put(timeSlot, new ArrayList<>());
+            }
+        }
+
+        // Populate timetable map with timetable entries
+        for (TimetableEntry entry : timetableData) {
+            if (subjects.contains(entry.getSubjectName()) && classes.contains(entry.getClassname())) {
+                String[] entryDays = entry.getDays().split(",\\s*");
+                for (String day : entryDays) {
+                    if (timetableMap.containsKey(day)) {
+                        timetableMap.get(day).get(entry.getTime()).add(entry);
+                    }
+                }
+            }
+        }
+        return timetableMap;
+    }
+
+    private String[] getTimeSlots() {
+        return new String[]{"8:00 AM - 9:00 AM", "9:00 AM - 10:00 AM", "10:00 AM - 11:00 AM", "11:00 AM - 12:00 PM",
+                "12:00 PM - 1:00 PM", "1:00 PM - 2:00 PM", "2:00 PM - 3:00 PM", "3:00 PM - 4:00 PM",
+                "4:00 PM - 5:00 PM", "5:00 PM - 6:00 PM"};
+    }
+
+
+
+    private void fetchTimetableData(List<String> subjects, List<String> classes, TimetableDataCallback callback) {
+        DatabaseReference timetableRef = FirebaseDatabase.getInstance().getReference().child("timetable");
+
+        timetableRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    List<TimetableEntry> timetableData = new ArrayList<>();
+
+                    for (DataSnapshot timetableSnapshot : snapshot.getChildren()) {
+                        TimetableEntry timetableEntry = timetableSnapshot.getValue(TimetableEntry.class);
+
+                        if (timetableEntry != null &&
+                                subjects.contains(timetableEntry.getSubjectName()) &&
+                                classes.contains(timetableEntry.getClassname())) {
+                            timetableData.add(timetableEntry);
+                        }
+                    }
+
+                    callback.onTimetableDataReceived(timetableData);
+                } else {
+                    callback.onTimetableDataError("No timetable data available");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                callback.onTimetableDataError("Failed to fetch timetable data: " + error.getMessage());
+            }
+        });
+    }
+
+
+
+    // Callback interface for timetable data
+    interface TimetableDataCallback {
+        void onTimetableDataReceived(List<TimetableEntry> timetableData);
+        void onTimetableDataError(String errorMessage);
+    }
+
     private void fetchTimetableForAllSubjects(String semester, List<String> subjects, List<String> classes) {
         progressBar.setVisibility(View.VISIBLE);
         timetableRef = FirebaseDatabase.getInstance().getReference().child("timetable");
@@ -221,12 +498,12 @@ public class userhomeFragment extends Fragment {
                     List<TimetableEntry> timetableData = new ArrayList<>();
 
                     for (DataSnapshot timetableSnapshot : snapshot.getChildren()) {
-                        String entrySemester = timetableSnapshot.child("semi").getValue(String.class);
+                     //   String entrySemester = timetableSnapshot.child("semi").getValue(String.class);
                         String entrySubject = timetableSnapshot.child("subjectName").getValue(String.class);
                         String entryClassname = timetableSnapshot.child("classname").getValue(String.class);
 
-                        if (entrySemester != null && entrySubject != null && entryClassname != null &&
-                                entrySemester.equals(semester) && subjects.contains(entrySubject) && classes.contains(entryClassname)) {
+                        if (entrySubject != null && entryClassname != null &&
+                                subjects.contains(entrySubject) && classes.contains(entryClassname)) {
                             TimetableEntry timetableEntry = timetableSnapshot.getValue(TimetableEntry.class);
                             if (timetableEntry != null) {
                                 timetableData.add(timetableEntry);
@@ -235,10 +512,10 @@ public class userhomeFragment extends Fragment {
                     }
 
                     if (!timetableData.isEmpty()) {
-                        Toast.makeText(requireContext(), "Timetable loaded for " + semester, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), "Timetable loaded" , Toast.LENGTH_SHORT).show();
                         showTimetableDialog(timetableData);
                     } else {
-                        Toast.makeText(requireContext(), "No timetable found for " + semester, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), "No timetable found", Toast.LENGTH_SHORT).show();
                     }
                 } else {
                     Toast.makeText(requireContext(), "No timetable data available", Toast.LENGTH_SHORT).show();
@@ -253,45 +530,6 @@ public class userhomeFragment extends Fragment {
         });
     }
 
-    private void fetchTimetable1(String semester, String subject, String classname) {
-        progressBar.setVisibility(View.VISIBLE);
-        timetableRef = FirebaseDatabase.getInstance().getReference().child("timetable");
-        timetableRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                progressBar.setVisibility(View.GONE);
-                if (snapshot.exists()) {
-                    timetableData.clear(); // Clear previous data
-                    for (DataSnapshot timetableSnapshot : snapshot.getChildren()) {
-//                        String entrySemester = timetableSnapshot.child("semi").getValue(String.class);
-                        String entrySubject = timetableSnapshot.child("subjectName").getValue(String.class);
-                        String entryClassname = timetableSnapshot.child("classname").getValue(String.class);
-                        if ( entrySubject != null && entryClassname != null &&
-                               entrySubject.equals(subject) && entryClassname.equals(classname)) {
-                            TimetableEntry timetableEntry = timetableSnapshot.getValue(TimetableEntry.class);
-                            if (timetableEntry != null) {
-                                timetableData.add(timetableEntry);
-                            }
-                        }
-                    }
-                    if (!timetableData.isEmpty()) {
-                        Toast.makeText(requireContext(), "Timetable loaded for " + semester + " - " + subject, Toast.LENGTH_SHORT).show();
-                        showTimetableDialog(timetableData);
-                    } else {
-                        Toast.makeText(requireContext(), "No timetable found for " + semester + " - " + username, Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    Toast.makeText(requireContext(), "No timetable data available", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                progressBar.setVisibility(View.GONE);
-                Toast.makeText(requireContext(), "Failed to load timetable: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
 
     private void fetchTimetable(String semester, String program, String classname) {
         progressBar.setVisibility(View.VISIBLE);

@@ -1,3 +1,4 @@
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.google.gms.google.services)
@@ -56,8 +57,9 @@ dependencies {
 
     implementation(platform("com.google.firebase:firebase-bom:32.0.0"))
     implementation("com.google.firebase:firebase-auth")
-
-
+//    implementation("com.itextpdf:itext7-core:7.2.0")
+//    implementation("com.itextpdf:itext7-layout:7.2.0")
+//    implementation("com.itextpdf:itext7-pdfhtml:2.0.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
