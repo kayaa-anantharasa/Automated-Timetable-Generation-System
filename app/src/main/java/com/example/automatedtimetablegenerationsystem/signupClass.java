@@ -46,11 +46,11 @@ public class signupClass {
         this.time = time;
     }
 
-    public signupClass(String email, String name, String password, String matrixNumber, String time) {
+    public signupClass(String email, String name, String password, String matrixNumber) {
         this.email = email;
         this.name = name;
         this.password = password;
         this.matrixNumber = matrixNumber;
-        this.time = time;
+
     }
 }

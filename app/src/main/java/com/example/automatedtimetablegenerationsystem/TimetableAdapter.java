@@ -18,8 +18,12 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.ViewHolder> {
 
@@ -27,14 +31,12 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
     private List<Timetable> filteredList;
     private Context context;
 
-    // Constructor to initialize the adapter with data and context
     public TimetableAdapter(Context context, List<Timetable> timetableEntries) {
         this.context = context;
         this.timetableEntries = timetableEntries;
         this.filteredList = new ArrayList<>(timetableEntries);
     }
 
-    // Create ViewHolder to hold reference to each view item
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView daysTextView, lecturerTextView, subjectCodeTextView, subjectNameTextView, timeTextView, semiTextView, programTextView, classTextView;
 
@@ -62,7 +64,6 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
         }
     }
 
-    // Inflate item layout and create ViewHolder
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -70,13 +71,11 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
         return new ViewHolder(view);
     }
 
-    // Bind data to ViewHolder
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Timetable timetable = filteredList.get(position);
         holder.bind(timetable);
 
-        // Implement delete button functionality
         holder.itemView.findViewById(R.id.delete).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -84,7 +83,6 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
             }
         });
 
-        // Implement update button functionality
         holder.itemView.findViewById(R.id.update).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -93,24 +91,20 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
         });
     }
 
-    // Return number of items in the data set
     @Override
     public int getItemCount() {
         return filteredList.size();
     }
 
-    // Method to delete timetable entry from Firebase and update RecyclerView
     private void deleteTimetableEntry(int position) {
         Timetable entryToDelete = filteredList.get(position);
         DatabaseReference timetableRef = FirebaseDatabase.getInstance().getReference("timetable");
 
-        // Remove from Firebase database
         String key = entryToDelete.getKey();
         timetableRef.child(key).removeValue()
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
-                        // Remove from local list and notify adapter
                         timetableEntries.remove(entryToDelete);
                         filteredList.remove(entryToDelete);
                         notifyDataSetChanged();
@@ -125,11 +119,9 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
                 });
     }
 
-    // Method to update timetable entry
     private void updateTimetableEntry(int position) {
         Timetable entryToUpdate = filteredList.get(position);
 
-        // Launch a dialog with current details pre-filled
         View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_edit_timetable, null);
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setView(dialogView);
@@ -143,7 +135,6 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
         EditText editProgram = dialogView.findViewById(R.id.editProgram);
         EditText editClass = dialogView.findViewById(R.id.editClass);
 
-        // Pre-fill the fields with current details
         editDays.setText(entryToUpdate.getDays());
         editLecturer.setText(entryToUpdate.getLecturer());
         editSubjectCode.setText(entryToUpdate.getSubjectCode());
@@ -157,7 +148,6 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
                 .setPositiveButton("Save", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        // Get updated values from input fields
                         String updatedDays = editDays.getText().toString();
                         String updatedLecturer = editLecturer.getText().toString();
                         String updatedSubjectCode = editSubjectCode.getText().toString();
@@ -167,7 +157,6 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
                         String updatedProgram = editProgram.getText().toString();
                         String updatedClass = editClass.getText().toString();
 
-                        // Update entry with new values
                         entryToUpdate.setDays(updatedDays);
                         entryToUpdate.setLecturer(updatedLecturer);
                         entryToUpdate.setSubjectCode(updatedSubjectCode);
@@ -177,14 +166,13 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
                         entryToUpdate.setProgram(updatedProgram);
                         entryToUpdate.setClassname(updatedClass);
 
-                        // Update entry in Firebase
                         DatabaseReference timetableRef = FirebaseDatabase.getInstance().getReference("timetable");
                         String key = entryToUpdate.getKey();
                         timetableRef.child(key).setValue(entryToUpdate)
                                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                                     @Override
                                     public void onSuccess(Void aVoid) {
-                                        // Update local list and notify adapter
+                                        addUpdateMessage(key); // Add update message to separate table
                                         notifyDataSetChanged();
                                         Toast.makeText(context, "Timetable entry updated successfully", Toast.LENGTH_SHORT).show();
                                     }
@@ -202,14 +190,21 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
         builder.create().show();
     }
 
-    // Method to update data in adapter
+    private void addUpdateMessage(String timetableKey) {
+        DatabaseReference updateRef = FirebaseDatabase.getInstance().getReference("timetable_updates");
+        String updateMessage = "Updated on " + getCurrentDateTime();
+        String timestamp = getCurrentDateTime();
+
+        TimetableUpdate timetableUpdate = new TimetableUpdate(timetableKey, updateMessage, timestamp);
+        updateRef.push().setValue(timetableUpdate);
+    }
+
     public void updateData(List<Timetable> newTimetableEntries) {
         this.timetableEntries = newTimetableEntries;
         this.filteredList = new ArrayList<>(newTimetableEntries);
         notifyDataSetChanged();
     }
 
-    // Method to filter list based on query
     public void filterList(String query) {
         filteredList.clear();
         if (query.isEmpty()) {
@@ -229,5 +224,11 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
             }
         }
         notifyDataSetChanged();
+    }
+
+    private String getCurrentDateTime() {
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        Date date = new Date();
+        return dateFormat.format(date);
     }
 }

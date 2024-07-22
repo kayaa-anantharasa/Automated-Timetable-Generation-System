@@ -12,11 +12,15 @@
         android:title="Time Table"
         android:icon="@drawable/baseline_preview_24"
         />
-
-    <!-- <item android:id="@+id/useredit"
-        android:title="Edit"
-        android:icon="@drawable/baseline_edit_square_24"
-        /> />-->
+    <item
+        android:id="@+id/notify"
+        android:title="Notification"
+        android:icon="@drawable/baseline_notifications_none_24"
+        />
+<!--    &lt;!&ndash; <item android:id="@+id/useredit"-->
+<!--        android:title="Edit"-->
+<!--        android:icon="@drawable/baseline_edit_square_24"-->
+<!--        /> />&ndash;&gt;-->
     <item android:id="@+id/userlogout"
         android:title="Logout"
         android:icon="@drawable/baseline_logout_24"
