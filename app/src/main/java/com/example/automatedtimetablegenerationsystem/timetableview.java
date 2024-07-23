@@ -155,7 +155,6 @@ public class timetableview extends AppCompatActivity {
 
         repeatSubjectsContainer.addView(rowLayout);
     }
-
     private void addCurrentSubjectClassRow(String currentSemester) {
         databaseReference.child("subjects").addValueEventListener(new ValueEventListener() {
             @Override
@@ -164,7 +163,7 @@ public class timetableview extends AppCompatActivity {
                 subjectList.add("Please Select");
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     String subjectName = snapshot.child("subjectName").getValue(String.class);
-                    String subjectSemester = snapshot.child("semester").getValue(String.class); // Assuming 'semester' is stored in your database
+                    String subjectSemester = snapshot.child("semester").getValue(String.class);
                     // Filter subjects by current semester
                     if (subjectSemester != null && subjectSemester.equals(currentSemester)) {
                         subjectList.add(subjectName);
@@ -179,9 +178,11 @@ public class timetableview extends AppCompatActivity {
                 rowLayout.setPadding(0, 8, 0, 8);
 
                 Spinner subjectSpinner = new Spinner(timetableview.this);
+                subjectSpinner.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1)); // Set width to 0 and weight to 1
                 subjectSpinner.setAdapter(subjectAdapter);
 
                 Spinner classSpinner = new Spinner(timetableview.this);
+                classSpinner.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1)); // Set width to 0 and weight to 1
                 databaseReference.child("classes").addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -215,6 +216,7 @@ public class timetableview extends AppCompatActivity {
             }
         });
     }
+
     private static final String DOCUMENT_ID = "123456789";
 
     private void generateTimetable() {
